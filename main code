@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inhouse - Durham University Student Accommodation & Roommate Network</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', sans-serif],
+                    },
+                    colors: {
+                        inhouse: {
+                            bg: '#f9f8f4',
+                            card: '#ffffff',
+                            dark: '#112519',
+                            sage: '#e3f1e5',
+                            sageHover: '#d0e6d3',
+                            peach: '#faeedc',
+                            accent: '#1f422c',
+                            muted: '#657166'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #f9f8f4; font-family: 'Inter', sans-serif; color: #112519; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f4f2ed; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5cb; border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #abc0ab; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="h-full flex flex-col selection:bg-[#112519] selection:text-[#e3f1e5]">
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Auth / Profile Setup Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-[#112519]/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative animate-fade-in border border-[#e3f1e5]">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-[#112519] transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-[#112519] text-[#e3f1e5] rounded-2xl mb-3 shadow-sm font-bold text-lg">
+                    in
+                </div>
+                <h3 class="text-2xl font-bold text-[#112519]">Welcome to inhouse</h3>
+                <p class="text-xs text-[#657166] mt-1">Durham University's private student housing & roommate network</p>
+            </div>
+            
+            <div class="space-y-3 mb-6">
+                <button onclick="loginWithProvider('Google')" class="w-full flex items-center justify-center gap-3 py-3 px-4 border border-slate-200 rounded-2xl font-medium text-slate-700 hover:bg-[#f9f8f4] transition shadow-xs text-sm">
+                    <i class="fa-brands fa-google text-red-500 text-base"></i> Continue with Google
+                </button>
+                <button onclick="loginWithProvider('Yahoo')" class="w-full flex items-center justify-center gap-3 py-3 px-4 border border-slate-200 rounded-2xl font-medium text-slate-700 hover:bg-[#f9f8f4] transition shadow-xs text-sm">
+                    <i class="fa-brands fa-yahoo text-purple-600 text-base"></i> Continue with Yahoo
+                </button>
+                <button onclick="loginWithProvider('Durham University Email')" class="w-full flex items-center justify-center gap-3 py-3 px-4 border border-slate-200 rounded-2xl font-medium text-slate-700 hover:bg-[#f9f8f4] transition shadow-xs text-sm">
+                    <i class="fa-solid fa-envelope text-[#112519] text-base"></i> Durham Email (@durham.ac.uk)
+                </button>
+            </div>
+
+            <div class="relative flex py-2 items-center mb-6">
+                <div class="flex-grow border-t border-slate-200"></div>
+                <span class="flex-shrink mx-4 text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Quick demo sign in</span>
+                <div class="flex-grow border-t border-slate-200"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="quickDemoLogin('jamie')" class="p-3 border border-[#e3f1e5] bg-[#e3f1e5]/40 hover:bg-[#e3f1e5] rounded-2xl text-left transition">
+                    <span class="block font-semibold text-xs text-[#112519]">Jamie Smith</span>
+                    <span class="block text-[11px] text-[#657166]">Durham College • 87% Match</span>
+                </button>
+                <button onclick="quickDemoLogin('sophie')" class="p-3 border border-[#e3f1e5] bg-[#e3f1e5]/40 hover:bg-[#e3f1e5] rounded-2xl text-left transition">
+                    <span class="block font-semibold text-xs text-[#112519]">Sophie Williams</span>
+                    <span class="block text-[11px] text-[#657166]">Law • 96% Match</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Layout Grid -->
+    <div class="flex-grow flex flex-col md:flex-row min-h-screen">
+        
+        <!-- Left Sidebar Navigation -->
+        <aside class="w-full md:w-64 bg-white border-r border-[#e3f1e5] flex flex-col justify-between p-6 shrink-0 shadow-xs">
+            <div class="space-y-8">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-[#112519] text-[#e3f1e5] rounded-xl flex items-center justify-center font-bold text-sm shadow-xs">
+                        in
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold tracking-tight text-[#112519]">inhouse</span>
+                        <span class="block text-[10px] text-[#657166] font-semibold">Durham University</span>
+                    </div>
+                </div>
+
+                <!-- Nav links -->
+                <div>
+                    <span class="block text-[10px] font-bold tracking-wider text-[#657166] uppercase mb-3">Workspace</span>
+                    <nav class="space-y-1">
+                        <button onclick="switchTab('discover')" id="nav-discover" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-[#112519] bg-[#e3f1e5]">
+                            <i class="fa-solid fa-compass text-base w-5 text-center"></i> Discover
+                        </button>
+                        <button onclick="switchTab('shortlist')" id="nav-shortlist" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-[#657166] hover:bg-[#e3f1e5]/50 hover:text-[#112519]">
+                            <i class="fa-solid fa-bookmark text-base w-5 text-center"></i> My shortlist
+                        </button>
+                        <button onclick="switchTab('messages')" id="nav-messages" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-[#657166] hover:bg-[#e3f1e5]/50 hover:text-[#112519]">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-comment text-base w-5 text-center"></i> Messages
+                            </div>
+                            <span id="sidebar-msg-badge" class="bg-[#e3f1e5] text-[#112519] text-xs font-bold px-2 py-0.5 rounded-full">3</span>
+                        </button>
+                        <button onclick="switchTab('profile')" id="nav-profile" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-[#657166] hover:bg-[#e3f1e5]/50 hover:text-[#112519]">
+                            <i class="fa-solid fa-user text-base w-5 text-center"></i> My Profile & Vibe Check
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Sidebar Promo Box -->
+            <div class="space-y-6">
+                <div class="bg-[#112519] text-[#e3f1e5] p-5 rounded-3xl relative overflow-hidden shadow-sm">
+                    <div class="absolute -right-4 -bottom-4 text-white/10 text-6xl pointer-events-none">
+                        <i class="fa-solid fa-sparkles"></i>
+                    </div>
+                    <h4 class="font-bold text-sm mb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-sparkles text-[#e3f1e5]"></i> Make your profile shine
+                    </h4>
+                    <p class="text-[11px] text-[#e3f1e5]/80 leading-relaxed mb-4">
+                        Complete your profile & MBTI vibe check for top Durham housemate matches.
+                    </p>
+                    <button onclick="switchTab('profile')" class="w-full py-2.5 bg-[#e3f1e5] hover:bg-white text-[#112519] font-bold text-xs rounded-xl transition shadow-xs">
+                        Complete profile &rarr;
+                    </button>
+                </div>
+
+                <!-- User profile snippet at bottom of sidebar -->
+                <div class="pt-4 border-t border-[#e3f1e5] flex items-center justify-between">
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('profile')">
+                        <img id="sidebar-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" class="w-9 h-9 rounded-full object-cover border border-[#e3f1e5]" alt="Avatar">
+                        <div>
+                            <span id="sidebar-user-name" class="block text-xs font-bold text-[#112519] leading-tight">Jamie Smith</span>
+                            <span id="sidebar-user-uni" class="block text-[10px] text-[#657166]">Durham University &bull; Student</span>
+                        </div>
+                    </div>
+                    <button onclick="openAuthModal()" title="Switch Account" class="text-xs text-[#657166] hover:text-[#112519] transition">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content View Area -->
+        <main class="flex-grow flex flex-col min-w-0 bg-[#f9f8f4] overflow-y-auto">
+            
+            <!-- Top Nav Bar -->
+            <header class="bg-white border-b border-[#e3f1e5] px-6 py-4 sticky top-0 z-30 flex items-center justify-between gap-4">
+                <div class="relative flex-grow max-w-xl">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <input type="text" id="top-search-input" oninput="handleGlobalSearch(event)" placeholder="Search Durham areas (Elvet, Viaduct, Claypath)..." class="w-full pl-10 pr-4 py-2 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-sm focus:outline-none focus:border-[#112519] transition">
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button onclick="showToast('You have 2 new notifications regarding Durham property viewings.')" class="w-10 h-10 bg-[#f9f8f4] hover:bg-[#e3f1e5]/40 border border-slate-200 rounded-2xl flex items-center justify-center text-[#112519] relative transition">
+                        <i class="fa-regular fa-bell text-sm"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-emerald-600 rounded-full"></span>
+                    </button>
+                    <div class="flex items-center gap-2 bg-[#f9f8f4] border border-slate-200 px-3 py-1.5 rounded-2xl cursor-pointer" onclick="switchTab('profile')">
+                        <img id="header-mini-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" class="w-7 h-7 rounded-full object-cover">
+                        <span id="header-mini-name" class="text-xs font-semibold text-[#112519]">Jamie</span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- TAB 1: DISCOVER / HOME VIEW -->
+            <section id="tab-discover" class="p-6 md:p-8 space-y-8 animate-fade-in">
+                
+                <!-- Sliding Hero Banner with Inclusive Student Imagery & Alternating Every 5 Seconds -->
+                <div class="relative rounded-3xl overflow-hidden shadow-md min-h-[260px] flex flex-col justify-end text-white">
+                    <!-- Slides Container -->
+                    <div id="hero-slider-container" class="absolute inset-0 w-full h-full">
+                        <!-- Slide 1 -->
+                        <div class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 hero-slide opacity-100" style="background-image: linear-gradient(rgba(17,37,25,0.75), rgba(31,66,44,0.6)), url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&auto=format&fit=crop&q=80');"></div>
+                        <!-- Slide 2 -->
+                        <div class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 hero-slide opacity-0" style="background-image: linear-gradient(rgba(17,37,25,0.75), rgba(31,66,44,0.6)), url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&auto=format&fit=crop&q=80');"></div>
+                        <!-- Slide 3 -->
+                        <div class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 hero-slide opacity-0" style="background-image: linear-gradient(rgba(17,37,25,0.75), rgba(31,66,44,0.6)), url('https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=1200&auto=format&fit=crop&q=80');"></div>
+                    </div>
+
+                    <!-- Slide Content Overlay -->
+                    <div class="relative z-10 p-8 md:p-10 space-y-2">
+                        <span class="inline-block px-3 py-1 bg-[#e3f1e5] text-[#112519] text-xs font-bold rounded-xl uppercase tracking-widest">Durham University</span>
+                        <h1 id="hero-title-text" class="text-3xl md:text-5xl font-extrabold tracking-tight">Match your mates & find your dream home</h1>
+                        <p id="hero-desc-text" class="text-sm md:text-base text-slate-200 max-w-xl">Connect with verified Durham students and secure private accommodation together.</p>
+                    </div>
+
+                    <!-- Slider Nav Dots & Arrows -->
+                    <div class="absolute bottom-6 right-6 z-20 flex items-center gap-3">
+                        <div class="flex items-center gap-1.5 bg-black/30 backdrop-blur-xs px-3 py-1.5 rounded-full" id="slider-dots">
+                            <button onclick="currentSlide(0)" class="w-2.5 h-2.5 rounded-full bg-white transition"></button>
+                            <button onclick="currentSlide(1)" class="w-2.5 h-2.5 rounded-full bg-white/50 transition"></button>
+                            <button onclick="currentSlide(2)" class="w-2.5 h-2.5 rounded-full bg-white/50 transition"></button>
+                        </div>
+                        <button onclick="showToast('Interactive map view enabled for Durham')" class="px-4 py-2 bg-white/95 hover:bg-white text-[#112519] rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-md">
+                            <i class="fa-solid fa-map-location-dot text-[#1f422c]"></i> Map
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Location & Filter Bar -->
+                <div class="bg-white p-3 rounded-3xl border border-[#e3f1e5] shadow-xs flex flex-wrap items-center gap-3">
+                    <div class="flex-grow min-w-[240px] flex items-center gap-3 px-4 py-2.5 bg-[#f9f8f4] rounded-2xl border border-slate-200">
+                        <i class="fa-solid fa-location-dot text-[#1f422c]"></i>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-[#657166] font-bold uppercase tracking-wider">LOOKING NEAR</span>
+                            <span class="text-xs font-semibold text-[#112519]">Durham University Campus & Colleges</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 px-4 py-2.5 bg-[#f9f8f4] rounded-2xl border border-slate-200">
+                        <i class="fa-regular fa-calendar text-[#1f422c]"></i>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-[#657166] font-bold uppercase tracking-wider">MOVE IN</span>
+                            <span class="text-xs font-semibold text-[#112519]">September 2026</span>
+                        </div>
+                    </div>
+
+                    <button onclick="openFilterModal()" class="px-5 py-3 bg-[#e3f1e5] hover:bg-[#d0e6d3] text-[#112519] rounded-2xl text-xs font-bold flex items-center gap-2 transition">
+                        <i class="fa-solid fa-sliders"></i> Filters
+                    </button>
+                </div>
+
+                <!-- Quick Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- Card 1: Match Profile -->
+                    <div class="bg-[#e3f1e5]/60 hover:bg-[#e3f1e5] border border-[#e3f1e5] p-6 rounded-3xl transition space-y-4 cursor-pointer" onclick="switchTab('profile')">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold tracking-widest text-[#657166] uppercase">YOUR MATCH PROFILE</span>
+                            <i class="fa-solid fa-wand-magic-sparkles text-[#1f422c]"></i>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-[#112519]" id="match-completeness-pct">87%</div>
+                            <span class="text-xs text-[#657166]">profile & MBTI completeness</span>
+                        </div>
+                        <div class="w-full bg-[#112519]/10 h-2 rounded-full overflow-hidden">
+                            <div id="hero-progress-bar" class="bg-[#1f422c] h-full rounded-full transition-all duration-500" style="width: 87%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: People Like You -->
+                    <div class="bg-white hover:bg-slate-50 border border-[#e3f1e5] p-6 rounded-3xl transition space-y-4 cursor-pointer shadow-xs" onclick="switchTab('profile')">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold tracking-widest text-[#657166] uppercase">PEOPLE LIKE YOU</span>
+                            <i class="fa-solid fa-users text-[#1f422c]"></i>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-[#112519]">18 <span class="text-sm font-normal text-[#657166]">nearby in Durham</span></div>
+                            <span class="text-xs text-[#657166]">looking for private student accommodation</span>
+                        </div>
+                        <div class="text-xs font-bold text-[#1f422c] flex items-center gap-1">
+                            Explore roommate vibe checks &rarr;
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Saved Homes -->
+                    <div class="bg-white hover:bg-slate-50 border border-[#e3f1e5] p-6 rounded-3xl transition space-y-4 cursor-pointer shadow-xs" onclick="switchTab('shortlist')">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold tracking-widest text-[#657166] uppercase">SAVED HOMES</span>
+                            <i class="fa-regular fa-heart text-rose-500"></i>
+                        </div>
+                        <div>
+                            <div id="saved-homes-count-display" class="text-3xl font-extrabold text-[#112519]">2 <span class="text-sm font-normal text-[#657166]">properties</span></div>
+                            <span class="text-xs text-emerald-700 font-medium">Waiting lists active</span>
+                        </div>
+                        <div class="text-xs font-bold text-[#1f422c] flex items-center gap-1">
+                            View shortlisted homes &rarr;
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Homes for you -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-[#112519]">Durham Homes for You</h2>
+                            <p class="text-xs text-[#657166]">Based on your Durham department and lifestyle preferences</p>
+                        </div>
+                        <button onclick="switchTab('discover')" class="text-xs font-bold text-[#1f422c] hover:underline">
+                            View all &rarr;
+                        </button>
+                    </div>
+
+                    <div id="homes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Section: Your potential housemates -->
+                <div class="space-y-4 pt-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-[#112519]">Your potential Durham housemates</h2>
+                            <p class="text-xs text-[#657166]">Students viewing the same Durham properties with compatible MBTI vibes</p>
+                        </div>
+                        <button onclick="switchTab('profile')" class="text-xs font-bold text-[#1f422c] hover:underline">
+                            See everyone &rarr;
+                        </button>
+                    </div>
+
+                    <div id="potential-roommates-home-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- TAB 2: SHORTLISTED HOMES -->
+            <section id="tab-shortlist" class="p-6 md:p-8 space-y-6 hidden animate-fade-in">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-[#112519]">My Shortlist & Saved Homes</h1>
+                    <p class="text-xs text-[#657166] mt-1">Durham properties you've bookmarked and waiting lists you have joined.</p>
+                </div>
+                
+                <div id="shortlist-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Populated via JS -->
+                </div>
+            </section>
+
+            <!-- TAB 3: SECURE MESSAGES & COMMUNITY CHAT -->
+            <section id="tab-messages" class="p-6 md:p-8 space-y-6 hidden animate-fade-in">
+                <div class="bg-white rounded-3xl border border-[#e3f1e5] shadow-xs overflow-hidden grid grid-cols-1 md:grid-cols-3 h-[calc(100vh-160px)]">
+                    <div class="border-r border-[#e3f1e5] flex flex-col bg-[#f9f8f4]">
+                        <div class="p-4 border-b border-[#e3f1e5] bg-white">
+                            <h3 class="font-bold text-[#112519] text-sm flex items-center justify-between">
+                                <span>Messages & Connections</span>
+                                <span class="bg-[#e3f1e5] text-[#112519] text-[10px] px-2 py-0.5 rounded-full font-bold">3 Active</span>
+                            </h3>
+                            <p class="text-[11px] text-[#657166] mt-0.5">Secure LinkedIn-style student chat</p>
+                        </div>
+                        <div id="chat-contacts-list" class="overflow-y-auto custom-scrollbar flex-grow divide-y divide-[#e3f1e5]/50">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2 flex flex-col bg-white">
+                        <div id="active-chat-header" class="p-4 border-b border-[#e3f1e5] flex items-center justify-between bg-white">
+                            <!-- Populated via JS -->
+                        </div>
+                        <div id="active-chat-messages" class="flex-grow overflow-y-auto custom-scrollbar p-5 space-y-4 bg-[#f9f8f4]">
+                            <!-- Populated via JS -->
+                        </div>
+                        <div id="active-chat-input-area" class="p-4 border-t border-[#e3f1e5] bg-white">
+                            <form onsubmit="sendChatMessage(event)" class="flex gap-2">
+                                <input type="text" id="chat-input-field" placeholder="Type a secure message..." class="flex-grow px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs focus:outline-none focus:border-[#112519]">
+                                <button type="submit" class="px-5 py-2.5 bg-[#112519] hover:bg-[#1f422c] text-[#e3f1e5] font-bold rounded-2xl text-xs transition">
+                                    Send
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: MY PROFILE & VIBE CHECK (Combined Setup Form) -->
+            <section id="tab-profile" class="p-6 md:p-8 space-y-6 hidden animate-fade-in max-w-4xl mx-auto w-full">
+                <div class="bg-white rounded-3xl p-6 md:p-8 border border-[#e3f1e5] shadow-xs space-y-8">
+                    
+                    <!-- Header prompt -->
+                    <div class="bg-[#e3f1e5]/40 border border-[#e3f1e5] p-4 rounded-2xl flex items-center gap-3">
+                        <i class="fa-solid fa-circle-info text-[#1f422c] text-lg"></i>
+                        <p class="text-xs text-[#112519] font-medium">
+                            This is what other Durham students see when deciding whether to share a place with you.
+                        </p>
+                    </div>
+
+                    <form onsubmit="saveProfileChanges(event)" class="space-y-8">
+                        
+                        <!-- Profile Photo & AI Generator -->
+                        <div class="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-[#e3f1e5]">
+                            <div class="relative group">
+                                <img id="profile-edit-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" class="w-24 h-24 rounded-full object-cover shadow-md border-4 border-[#e3f1e5]" alt="Avatar">
+                                <label class="absolute bottom-0 right-0 bg-[#112519] text-[#e3f1e5] w-8 h-8 rounded-full flex items-center justify-center cursor-pointer shadow transition hover:bg-[#1f422c]">
+                                    <i class="fa-solid fa-camera text-xs"></i>
+                                    <input type="file" accept="image/*" onchange="handleAvatarUpload(event)" class="hidden">
+                                </label>
+                            </div>
+                            <div class="text-center sm:text-left flex-grow space-y-2">
+                                <h3 class="font-bold text-sm text-[#112519]">Profile photo</h3>
+                                <p class="text-xs text-[#657166]">Upload your own, or generate an avatar with AI.</p>
+                                <div class="flex flex-wrap gap-2 justify-center sm:justify-start pt-1">
+                                    <label class="px-4 py-2 bg-[#f9f8f4] border border-slate-200 hover:bg-[#e3f1e5]/40 text-[#112519] text-xs font-bold rounded-xl cursor-pointer transition">
+                                        Upload <input type="file" accept="image/*" onchange="handleAvatarUpload(event)" class="hidden">
+                                    </label>
+                                    <button type="button" onclick="generateAIAvatar()" class="px-4 py-2 bg-[#112519] hover:bg-[#1f422c] text-[#e3f1e5] text-xs font-bold rounded-xl transition shadow-xs">
+                                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate avatar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Basic Details -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Full name</label>
+                                <input type="text" id="input-name" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs focus:outline-none focus:border-[#112519]" required>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">University</label>
+                                <select id="input-uni" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs focus:outline-none focus:border-[#112519]">
+                                    <option value="Durham University">Durham University</option>
+                                    <option value="University of Cambridge">University of Cambridge</option>
+                                    <option value="University of Oxford">University of Oxford</option>
+                                    <option value="University of Edinburgh">University of Edinburgh</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Year of study</label>
+                                <select id="input-year" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs focus:outline-none focus:border-[#112519]">
+                                    <option value="Year 1">Year 1</option>
+                                    <option value="Year 2">Year 2</option>
+                                    <option value="Year 3">Year 3</option>
+                                    <option value="Year 4">Year 4</option>
+                                    <option value="Postgrad">Postgrad</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Short bio</label>
+                            <textarea id="input-bio" rows="2" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs focus:outline-none focus:border-[#112519]" placeholder="Tell potential flatmates a bit about yourself..."></textarea>
+                        </div>
+
+                        <!-- MBTI Vibe Check Section -->
+                        <div class="space-y-3 pt-4 border-t border-[#e3f1e5]">
+                            <div>
+                                <h3 class="font-bold text-sm text-[#112519]">MBTI vibe check</h3>
+                                <p class="text-xs text-[#657166]">Pick your type — we use it to score compatibility with other Durham students.</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="mbti-cards-container">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Hobbies & Interests -->
+                        <div class="space-y-3 pt-4 border-t border-[#e3f1e5]">
+                            <div>
+                                <h3 class="font-bold text-sm text-[#112519]">Hobbies & interests</h3>
+                                <p class="text-xs text-[#657166]">Select all that apply to match with people sharing your passions.</p>
+                            </div>
+
+                            <div id="hobbies-tags-container" class="flex flex-wrap gap-2">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Living Preferences -->
+                        <div class="space-y-4 pt-4 border-t border-[#e3f1e5]">
+                            <h3 class="font-bold text-sm text-[#112519]">Living preferences</h3>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Budget (£/wk)</label>
+                                    <input type="text" id="pref-budget" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs" value="£180/wk">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Max distance to campus</label>
+                                    <input type="text" id="pref-distance" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs" value="15 min">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Preferred area in Durham</label>
+                                    <select id="pref-city" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs">
+                                        <option value="Durham (Elvet / Viaduct)">Durham (Elvet / Viaduct)</option>
+                                        <option value="Claypath">Claypath</option>
+                                        <option value="Gilesgate">Gilesgate</option>
+                                        <option value="Mount Oswald">Mount Oswald</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Cleanliness</label>
+                                    <select id="pref-cleanliness" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs">
+                                        <option value="Tidy">Tidy</option>
+                                        <option value="Moderate">Moderate</option>
+                                        <option value="Relaxed">Relaxed</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Sleep schedule</label>
+                                    <select id="pref-sleep" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs">
+                                        <option value="Flexible">Flexible</option>
+                                        <option value="Early riser">Early riser</option>
+                                        <option value="Night owl">Night owl</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Social level</label>
+                                    <select id="pref-social" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs">
+                                        <option value="Sociable">Sociable</option>
+                                        <option value="Balanced">Balanced</option>
+                                        <option value="Quiet / Introverted">Quiet / Introverted</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Smoking</label>
+                                    <select id="pref-smoking" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs">
+                                        <option value="No">No</option>
+                                        <option value="Outside only">Outside only</option>
+                                        <option value="Yes">Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Pets</label>
+                                    <select id="pref-pets" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs">
+                                        <option value="No pets">No pets</option>
+                                        <option value="Cat friendly">Cat friendly</option>
+                                        <option value="Dog friendly">Dog friendly</option>
+                                        <option value="Any">Any</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">Flatmate gender preference</label>
+                                    <select id="pref-gender" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs">
+                                        <option value="Any">Any</option>
+                                        <option value="Male only">Male only</option>
+                                        <option value="Female only">Female only</option>
+                                        <option value="Non-binary">Non-binary inclusive</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#657166] uppercase tracking-wider mb-1">What are you looking for in a roommate?</label>
+                                <textarea id="pref-roommate-desc" rows="2" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs" placeholder="e.g. Someone clean, respectful of library hours, and up for college formals..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-4 border-t border-[#e3f1e5]">
+                            <button type="submit" class="px-7 py-3 bg-[#112519] hover:bg-[#1f422c] text-[#e3f1e5] font-bold rounded-2xl text-xs transition shadow-md">
+                                Save Profile & Update Durham Matches
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- PROPERTY DETAIL MODAL WITH IMAGE SLIDESHOW & 3D VIRTUAL TOUR -->
+    <div id="property-modal" class="fixed inset-0 bg-[#112519]/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar relative animate-fade-in border border-[#e3f1e5]">
+            <button onclick="closePropertyModal()" class="absolute top-4 right-4 z-20 w-9 h-9 bg-white/90 hover:bg-white text-[#112519] rounded-full flex items-center justify-center shadow transition font-bold">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="property-modal-body">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTER MODAL -->
+    <div id="filter-modal" class="fixed inset-0 bg-[#112519]/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative animate-fade-in space-y-5 border border-[#e3f1e5]">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-lg text-[#112519]">Filter Durham Accommodations</h3>
+                <button onclick="closeFilterModal()" class="text-slate-400 hover:text-[#112519]"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-[#657166] uppercase mb-1.5">Max Price (£ / week)</label>
+                    <input type="range" min="100" max="400" step="10" value="250" id="filter-price-range" oninput="document.getElementById('price-val').innerText = '£' + this.value" class="w-full accent-[#112519]">
+                    <div class="flex justify-between text-xs text-[#657166] mt-1">
+                        <span>£100</span>
+                        <span id="price-val" class="font-bold text-[#112519]">£250</span>
+                        <span>£400+</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-[#657166] uppercase mb-1.5">Property Type</label>
+                    <select id="filter-type-select" class="w-full px-4 py-2.5 bg-[#f9f8f4] border border-slate-200 rounded-2xl text-xs">
+                        <option value="all">All Types</option>
+                        <option value="Studio">Studio</option>
+                        <option value="Shared">Shared Student House</option>
+                        <option value="Apartment">Apartment</option>
+                    </select>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-[#e3f1e5] flex justify-end gap-3">
+                <button onclick="closeFilterModal()" class="px-5 py-2.5 bg-[#112519] text-[#e3f1e5] font-bold rounded-2xl text-xs hover:bg-[#1f422c] transition">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER PROFILE VIEW MODAL (opened by clicking any profile picture) -->
+    <div id="user-profile-modal" class="fixed inset-0 bg-[#112519]/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar relative animate-fade-in border border-[#e3f1e5]">
+            <button onclick="closeUserProfileModal()" class="absolute top-4 right-4 z-20 w-9 h-9 bg-white/90 hover:bg-white text-[#112519] rounded-full flex items-center justify-center shadow transition font-bold">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="user-profile-modal-body">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const mbtiTypesList = [
+            { code: 'INTJ', desc: 'Strategic, independent' },
+            { code: 'INTP', desc: 'Curious, analytical' },
+            { code: 'ENTJ', desc: 'Decisive, leader' },
+            { code: 'ENTP', desc: 'Inventive, debater' },
+            { code: 'INFJ', desc: 'Insightful, idealistic' },
+            { code: 'INFP', desc: 'Authentic, empathetic' },
+            { code: 'ENFJ', desc: 'Warm, organised' },
+            { code: 'ENFP', desc: 'Enthusiastic, free-spirited' },
+            { code: 'ISTJ', desc: 'Reliable, structured' },
+            { code: 'ISFJ', desc: 'Caring, conscientious' },
+            { code: 'ESTJ', desc: 'Practical, direct' },
+            { code: 'ESFJ', desc: 'Friendly, supportive' },
+            { code: 'ISTP', desc: 'Handy, adaptable' },
+            { code: 'ISFP', desc: 'Gentle, artistic' },
+            { code: 'ESTP', desc: 'Bold, energetic' },
+            { code: 'ESFP', desc: 'Playful, sociable' }
+        ];
+
+        const allHobbiesList = [
+            'Reading', 'Gaming', 'Cooking', 'Music', 'Film', 'Hiking', 'Running', 'Yoga', 'Gym', 
+            'Art', 'Photography', 'Travel', 'Coffee', 'Plants', 'Chess', 'Rowing', 'Rugby', 'Cycling', 'Dance', 'Volunteering'
+        ];
+
+        let currentUser = {
+            id: 'jamie',
+            name: 'Jamie Smith',
+            uni: 'Durham University',
+            year: 'Year 2',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+            mbti: 'INTJ',
+            hobbies: ['Reading', 'Cooking', 'Coffee', 'Rowing'],
+            bio: 'Durham student at Hatfield College looking for clean flatmates near Elvet. Love rowing and college formals.',
+            budget: '£180/wk',
+            distance: '10 min',
+            city: 'Durham (Elvet / Viaduct)',
+            cleanliness: 'Tidy',
+            sleep: 'Flexible',
+            social: 'Sociable',
+            smoking: 'No',
+            pets: 'No pets',
+            genderPref: 'Any',
+            roommateDesc: 'Someone clean, respectful of library hours, and up for college formals.'
+        };
+
+        const dummyProperties = [
+            {
+                id: 'prop-1',
+                title: 'Elvet Waterside House',
+                location: 'Elvet Waterside, Durham',
+                price: 175,
+                type: 'Shared',
+                beds: '4 bed student house',
+                matchPct: '94%',
+                interestedCount: 4,
+                images: [
+                    'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80'
+                ],
+                has3D: true,
+                description: 'Stunning 4-bedroom student house overlooking the River Wear near Elvet. Fully furnished with modern kitchen and secure bike storage.',
+                waitingList: ['sophie', 'ethan', 'maya']
+            },
+            {
+                id: 'prop-2',
+                title: 'Viaduct View Apartments',
+                location: 'North Road, Viaduct, Durham',
+                price: 195,
+                type: 'Apartment',
+                beds: '2 bed apartment',
+                matchPct: '91%',
+                interestedCount: 3,
+                images: [
+                    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80'
+                ],
+                has3D: true,
+                description: 'Modern student apartments right next to Durham train station and the Viaduct pubs. En-suite bathrooms and high-speed fibre.',
+                waitingList: ['sophie', 'ethan', 'maya']
+            },
+            {
+                id: 'prop-3',
+                title: 'Claypath Student Lodge',
+                location: 'Claypath, Durham City Centre',
+                price: 160,
+                type: 'Shared',
+                beds: '5 bed house',
+                matchPct: '87%',
+                interestedCount: 5,
+                images: [
+                    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&auto=format&fit=crop&q=80'
+                ],
+                has3D: false,
+                description: 'Spacious 5-bedroom townhouse right on Claypath, minutes from Market Square and lectures.',
+                waitingList: ['ethan', 'maya']
+            },
+            {
+                id: 'prop-4',
+                title: 'Gilesgate Gardens',
+                location: 'Gilesgate, Durham',
+                price: 145,
+                type: 'Shared',
+                beds: '3 bed house',
+                matchPct: '89%',
+                interestedCount: 2,
+                images: [
+                    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80'
+                ],
+                has3D: true,
+                description: 'Quiet residential student house in Gilesgate with private garden and off-street parking.',
+                waitingList: ['sophie', 'ethan']
+            }
+        ];
+
+        const dummyRoommates = [
+            {
+                id: 'sophie',
+                name: 'Sophie Williams',
+                dept: 'Law - 2nd year (Hatfield)',
+                avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+                mbti: 'ENFP',
+                matchPct: '96%',
+                tags: ['Rowing', 'Travel', 'Debate'],
+                bio: 'Law student looking for friendly college mates to rent a 3 or 4 bed place in Durham.',
+                uni: 'Durham University',
+                year: 'Year 2',
+                hobbies: ['Rowing', 'Travel', 'Debate'],
+                budget: '£190/wk',
+                distance: '5 min',
+                city: 'Durham (Elvet / Viaduct)',
+                cleanliness: 'Moderate',
+                sleep: 'Early riser',
+                social: 'Sociable',
+                smoking: 'No',
+                pets: 'Dog friendly',
+                genderPref: 'Any',
+                roommateDesc: 'Friendly, active housemates who enjoy college formals and weekends away.'
+            },
+            {
+                id: 'ethan',
+                name: 'Ethan Zhang',
+                dept: 'Computer Science - 3rd year (Grey)',
+                avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+                mbti: 'INTJ',
+                matchPct: '92%',
+                tags: ['Gaming', 'Coffee', 'Reading'],
+                bio: 'CS student at Grey College. Neat, quiet, and passionate about coding and local coffee shops.',
+                uni: 'Durham University',
+                year: 'Year 3',
+                hobbies: ['Gaming', 'Coffee', 'Reading', 'Chess'],
+                budget: '£160/wk',
+                distance: '10 min',
+                city: 'Claypath',
+                cleanliness: 'Tidy',
+                sleep: 'Night owl',
+                social: 'Quiet / Introverted',
+                smoking: 'No',
+                pets: 'Cat friendly',
+                genderPref: 'Any',
+                roommateDesc: 'Neat and quiet flatmates who respect focus time and shared spaces.'
+            },
+            {
+                id: 'maya',
+                name: 'Maya Patel',
+                dept: 'Natural Sciences - 1st year (St Marys)',
+                avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+                mbti: 'ISTP',
+                matchPct: '89%',
+                tags: ['Yoga', 'Photography', 'Hiking'],
+                bio: 'NatSci student looking for clean housemates near the science site.',
+                uni: 'Durham University',
+                year: 'Year 1',
+                hobbies: ['Yoga', 'Photography', 'Hiking', 'Plants'],
+                budget: '£170/wk',
+                distance: '15 min',
+                city: 'Gilesgate',
+                cleanliness: 'Tidy',
+                sleep: 'Early riser',
+                social: 'Balanced',
+                smoking: 'No',
+                pets: 'Any',
+                genderPref: 'Female only',
+                roommateDesc: 'Clean, considerate housemates who enjoy the outdoors.'
+            }
+        ];
+
+        let chatsData = [
+            {
+                id: 'chat-sophie',
+                withUserId: 'sophie',
+                status: 'connected',
+                messages: [
+                    { sender: 'sophie', text: "Hey Jamie! Saw we both checked out Elvet Waterside House. Are you looking to form a group for Durham private housing?", time: 'Yesterday 14:30' },
+                    { sender: 'jamie', text: "Hi Sophie! Yes indeed, looks like a great spot and our MBTI vibe matches up really well.", time: 'Yesterday 15:10' }
+                ]
+            },
+            {
+                id: 'chat-ethan',
+                withUserId: 'ethan',
+                status: 'pending',
+                messages: [
+                    { sender: 'ethan', text: "Connection Request: Ethan wants to connect regarding Viaduct View Apartments.", time: '2 days ago' }
+                ]
+            }
+        ];
+
+        let activeChatId = 'chat-sophie';
+        let savedPropertyIds = ['prop-1', 'prop-2'];
+        let currentHeroSlide = 0;
+        let heroInterval = null;
+        let activeImageIndex = 0;
+
+        // --- INIT ---
+        window.onload = function() {
+            renderHomes();
+            renderPotentialRoommatesHome();
+            renderShortlist();
+            renderChatContacts();
+            renderActiveChat();
+            renderMbtiCards();
+            renderHobbiesTags();
+            updateUserProfileUI();
+            startHeroSlider();
+        };
+
+        // --- HERO SLIDING BANNER LOGIC ---
+        const slidesData = [
+            { title: "Match your mates & find your dream home", desc: "Connect with verified Durham students and secure private accommodation together." },
+            { title: "Connect before you move with personality matching", desc: "Use our MBTI vibe check and lifestyle filters to find ideal housemates." },
+            { title: "Secure private student housing at Durham University", desc: "Browse handpicked student properties across Elvet, Viaduct, and Claypath." }
+        ];
+
+        function startHeroSlider() {
+            if (heroInterval) clearInterval(heroInterval);
+            heroInterval = setInterval(() => {
+                currentHeroSlide = (currentHeroSlide + 1) % 3;
+                updateHeroSlideUI();
+            }, 5000);
+        }
+
+        function currentSlide(idx) {
+            currentHeroSlide = idx;
+            updateHeroSlideUI();
+            startHeroSlider(); // reset timer
+        }
+
+        function updateHeroSlideUI() {
+            const slideEls = document.querySelectorAll('.hero-slide');
+            const titleEl = document.getElementById('hero-title-text');
+            const descEl = document.getElementById('hero-desc-text');
+            const dotsContainer = document.getElementById('slider-dots');
+
+            if (!slideEls.length || !titleEl) return;
+
+            slideEls.forEach((el, index) => {
+                el.style.opacity = index === currentHeroSlide ? '1' : '0';
+            });
+
+            titleEl.textContent = slidesData[currentHeroSlide].title;
+            descEl.textContent = slidesData[currentHeroSlide].desc;
+
+            if (dotsContainer) {
+                const dots = dotsContainer.querySelectorAll('button');
+                dots.forEach((dot, index) => {
+                    dot.className = index === currentHeroSlide ? 'w-2.5 h-2.5 rounded-full bg-white transition' : 'w-2.5 h-2.5 rounded-full bg-white/50 transition';
+                });
+            }
+        }
+
+        // --- TAB SWITCHING ---
+        function switchTab(tabId) {
+            ['discover', 'shortlist', 'messages', 'profile'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if (el) el.classList.add('hidden');
+                
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) {
+                    navBtn.classList.remove('bg-[#e3f1e5]', 'text-[#112519]', 'font-bold');
+                    navBtn.classList.add('text-[#657166]');
+                }
+            });
+
+            const activeEl = document.getElementById(`tab-${tabId}`);
+            if (activeEl) activeEl.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.add('bg-[#e3f1e5]', 'text-[#112519]', 'font-bold');
+                activeNav.classList.remove('text-[#657166]');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- RENDER MBTI CARDS IN PROFILE ---
+        function renderMbtiCards() {
+            const container = document.getElementById('mbti-cards-container');
+            if (!container) return;
+
+            container.innerHTML = mbtiTypesList.map(item => {
+                const isSelected = currentUser.mbti === item.code;
+                return `
+                    <div onclick="selectMbtiType('${item.code}')" class="p-3.5 rounded-2xl border cursor-pointer transition flex flex-col justify-between ${isSelected ? 'bg-[#112519] text-[#e3f1e5] border-[#112519] shadow-sm' : 'bg-white hover:bg-[#e3f1e5]/30 border-slate-200 text-[#112519]'}">
+                        <span class="font-bold text-sm">${item.code}</span>
+                        <span class="text-[11px] opacity-80 mt-1">${item.desc}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectMbtiType(code) {
+            currentUser.mbti = code;
+            renderMbtiCards();
+            calculateProfileCompleteness();
+        }
+
+        // --- RENDER HOBBIES TAGS ---
+        function renderHobbiesTags() {
+            const container = document.getElementById('hobbies-tags-container');
+            if (!container) return;
+
+            container.innerHTML = allHobbiesList.map(hobby => {
+                const isSelected = currentUser.hobbies.includes(hobby);
+                return `
+                    <button type="button" onclick="toggleHobbyTag('${hobby}')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${isSelected ? 'bg-[#112519] text-[#e3f1e5]' : 'bg-[#f9f8f4] border border-slate-200 text-[#112519] hover:bg-[#e3f1e5]/40'}">
+                        ${hobby} ${isSelected ? '<i class="fa-solid fa-check ml-1"></i>' : ''}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleHobbyTag(hobby) {
+            if (currentUser.hobbies.includes(hobby)) {
+                currentUser.hobbies = currentUser.hobbies.filter(h => h !== hobby);
+            } else {
+                currentUser.hobbies.push(hobby);
+            }
+            renderHobbiesTags();
+            calculateProfileCompleteness();
+        }
+
+        // --- RENDER HOMES ---
+        function renderHomes() {
+            const grid = document.getElementById('homes-grid');
+            if (!grid) return;
+
+            grid.innerHTML = dummyProperties.map(prop => {
+                const isSaved = savedPropertyIds.includes(prop.id);
+                return `
+                    <div class="bg-white rounded-3xl border border-[#e3f1e5] overflow-hidden shadow-xs hover:shadow-md transition flex flex-col group">
+                        <div class="relative h-52 overflow-hidden bg-slate-100">
+                            <img src="${prop.images[0]}" alt="${prop.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <div class="absolute top-3 left-3 bg-[#e3f1e5] text-[#112519] text-[11px] font-bold px-3 py-1 rounded-xl shadow-xs">
+                                ${prop.matchPct} match
+                            </div>
+                            <button onclick="toggleSaveProperty('${prop.id}')" class="absolute top-3 right-3 w-9 h-9 bg-white/90 hover:bg-white text-slate-700 rounded-full flex items-center justify-center shadow transition">
+                                <i class="${isSaved ? 'fa-solid text-rose-500' : 'fa-regular text-slate-600'} fa-heart text-sm"></i>
+                            </button>
+                        </div>
+
+                        <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+                            <div>
+                                <div class="flex items-center justify-between text-xs text-[#657166] mb-1">
+                                    <span>${prop.location}</span>
+                                </div>
+                                <h3 class="font-bold text-[#112519] text-base mb-1">${prop.title}</h3>
+                                <div class="text-lg font-extrabold text-[#112519]">£${prop.price} <span class="text-xs text-[#657166] font-normal">/ week</span></div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-3 border-t border-[#e3f1e5] text-xs text-[#657166]">
+                                <div class="flex items-center gap-4">
+                                    <span>${prop.beds}</span>
+                                    <span>${prop.type}</span>
+                                </div>
+                                <span class="font-bold text-[#112519] flex items-center gap-1">
+                                    <i class="fa-solid fa-users text-[#1f422c]"></i> ${prop.interestedCount} interested
+                                </span>
+                            </div>
+
+                            <button onclick="openPropertyModal('${prop.id}')" class="w-full py-2.5 bg-[#f9f8f4] hover:bg-[#e3f1e5] border border-[#e3f1e5] text-[#112519] font-bold rounded-2xl text-xs transition">
+                                View property, photos & 3D tour
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- RENDER POTENTIAL HOUSEMATES (HOME PAGE) ---
+        function renderPotentialRoommatesHome() {
+            const grid = document.getElementById('potential-roommates-home-grid');
+            if (!grid) return;
+
+            grid.innerHTML = dummyRoommates.slice(0, 3).map(rm => `
+                <div class="bg-white rounded-3xl p-5 border border-[#e3f1e5] shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <img src="${rm.avatar}" onclick="openUserProfileModal('${rm.id}')" title="View profile" class="w-12 h-12 rounded-full object-cover border-2 border-[#e3f1e5] cursor-pointer hover:opacity-80 transition">
+                            <div>
+                                <h4 class="font-bold text-[#112519] text-sm">${rm.name}</h4>
+                                <p class="text-[11px] text-[#657166]">${rm.dept}</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 bg-[#e3f1e5] text-[#112519] text-xs font-bold rounded-xl">
+                            ${rm.matchPct}
+                        </span>
+                    </div>
+
+                    <p class="text-xs text-[#657166] italic line-clamp-2">"${rm.bio}"</p>
+
+                    <div class="flex flex-wrap gap-1.5">
+                        ${rm.tags.map(t => `<span class="px-2.5 py-1 bg-[#f9f8f4] border border-[#e3f1e5] text-[#112519] text-[10px] font-medium rounded-lg">${t}</span>`).join('')}
+                    </div>
+
+                    <div class="pt-3 border-t border-[#e3f1e5] flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-[#1f422c]">MBTI: ${rm.mbti}</span>
+                        <button onclick="requestConnection('${rm.id}', '${rm.name}')" class="px-4 py-2 bg-[#112519] hover:bg-[#1f422c] text-[#e3f1e5] font-bold rounded-2xl text-xs transition shadow-sm">
+                            <i class="fa-solid fa-user-plus mr-1"></i> Connect
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- PROPERTY DETAIL MODAL WITH IMAGE SLIDESHOW & 3D VIRTUAL TOUR ---
+        function openPropertyModal(propId) {
+            const prop = dummyProperties.find(p => p.id === propId);
+            if (!prop) return;
+
+            activeImageIndex = 0;
+            const modal = document.getElementById('property-modal');
+            const body = document.getElementById('property-modal-body');
+
+            const interestedStudents = prop.waitingList.map(uid => dummyRoommates.find(r => r.id === uid)).filter(Boolean);
+
+            body.innerHTML = `
+                <!-- Image Slideshow Section -->
+                <div class="relative h-72 md:h-96 bg-slate-900" id="property-slideshow-container">
+                    <img id="active-slideshow-img" src="${prop.images[0]}" alt="${prop.title}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#112519] via-transparent to-transparent"></div>
+                    
+                    <!-- Navigation Arrows -->
+                    ${prop.images.length > 1 ? `
+                        <button onclick="slidePropertyImage(-1, '${prop.id}')" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button onclick="slidePropertyImage(1, '${prop.id}')" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    ` : ''}
+
+                    <div class="absolute top-4 left-4 flex gap-2">
+                        <span class="px-3 py-1 bg-[#e3f1e5] text-[#112519] text-xs font-bold rounded-xl shadow">${prop.matchPct} Match</span>
+                        <span id="image-counter-badge" class="px-3 py-1 bg-black/60 text-white text-xs font-bold rounded-xl backdrop-blur-xs">1 / ${prop.images.length} photos</span>
+                    </div>
+
+                    <div class="absolute bottom-6 left-6 right-6 text-white">
+                        <h2 class="text-2xl md:text-3xl font-bold mb-1">${prop.title}</h2>
+                        <p class="text-xs text-slate-200"><i class="fa-solid fa-location-dot text-[#e3f1e5]"></i> ${prop.location}</p>
+                    </div>
+                </div>
+
+                <!-- Tabs for Details / 3D Virtual Tour -->
+                <div class="flex border-b border-[#e3f1e5] bg-[#f9f8f4] px-6">
+                    <button onclick="switchPropertyTab('overview')" id="prop-tab-overview" class="py-3 px-5 text-xs font-bold border-b-2 border-[#112519] text-[#112519] transition">Overview & Waiting List</button>
+                    <button onclick="switchPropertyTab('tour3d')" id="prop-tab-tour3d" class="py-3 px-5 text-xs font-bold border-b-2 border-transparent text-[#657166] hover:text-[#112519] transition">3D Virtual Tour & Provider Upload</button>
+                </div>
+
+                <!-- Tab Content 1: Overview -->
+                <div id="prop-content-overview" class="p-6 md:p-8 space-y-6">
+                    <div class="flex items-center justify-between pb-6 border-b border-[#e3f1e5]">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold text-[#657166]">Rental Price</span>
+                            <div class="text-3xl font-extrabold text-[#112519]">£${prop.price} <span class="text-xs font-normal text-[#657166]">/ week</span></div>
+                        </div>
+                        <button onclick="joinWaitingList('${prop.id}')" class="px-5 py-3 bg-[#112519] hover:bg-[#1f422c] text-[#e3f1e5] font-bold rounded-2xl text-xs transition shadow-sm">
+                            <i class="fa-solid fa-clipboard-list mr-1"></i> Join Waiting List
+                        </button>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-sm text-[#112519] mb-1">About this Durham property</h3>
+                        <p class="text-xs text-[#657166] leading-relaxed">${prop.description}</p>
+                    </div>
+
+                    <!-- Students viewing property -->
+                    <div class="bg-[#e3f1e5]/40 p-5 rounded-3xl border border-[#e3f1e5] space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-xs text-[#112519] uppercase tracking-wider">Students viewing / on waiting list (${interestedStudents.length})</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            ${interestedStudents.map(st => `
+                                <div class="bg-white p-3.5 rounded-2xl border border-[#e3f1e5] flex items-center justify-between shadow-xs">
+                                    <div class="flex items-center gap-3">
+                                        <img src="${st.avatar}" onclick="openUserProfileModal('${st.id}')" title="View profile" class="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition">
+                                        <div>
+                                            <h4 class="font-bold text-xs text-[#112519]">${st.name}</h4>
+                                            <span class="text-[10px] text-[#1f422c] font-bold">${st.mbti} &bull; ${st.matchPct} Match</span>
+                                        </div>
+                                    </div>
+                                    <button onclick="requestConnection('${st.id}', '${st.name}')" class="px-3 py-1.5 bg-[#112519] text-[#e3f1e5] text-[11px] font-bold rounded-xl hover:bg-[#1f422c]">
+                                        Connect
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content 2: 3D Virtual Tour & Provider Upload -->
+                <div id="prop-content-tour3d" class="p-6 md:p-8 space-y-6 hidden">
+                    <div class="bg-[#112519] text-[#e3f1e5] rounded-3xl p-6 relative overflow-hidden flex flex-col items-center justify-center text-center min-h-[300px]">
+                        <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('${prop.images[0]}');"></div>
+                        <div class="relative z-10 space-y-3 max-w-lg">
+                            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto text-xl">
+                                <i class="fa-solid fa-cube animate-pulse"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Interactive 3D Virtual Tour Viewer</h3>
+                            <p class="text-xs text-slate-200">Providers can embed 3D Matterport or GLTF models here. Explore the rooms in immersive 360°.</p>
+                            <div class="pt-2 flex flex-wrap justify-center gap-3">
+                                <button onclick="showToast('Launched immersive 3D walkthrough for ' + '${prop.title}')" class="px-5 py-2.5 bg-[#e3f1e5] hover:bg-white text-[#112519] font-bold text-xs rounded-xl transition shadow">
+                                    <i class="fa-solid fa-vr-cardboard mr-1"></i> Launch 3D Tour
+                                </button>
+                                <label class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl cursor-pointer transition border border-white/20">
+                                    <i class="fa-solid fa-upload mr-1"></i> Upload 3D Model (.gltf/.obj)
+                                    <input type="file" accept=".gltf,.glb,.obj,.zip" onchange="handle3DModelUpload(event)" class="hidden">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function slidePropertyImage(direction, propId) {
+            const prop = dummyProperties.find(p => p.id === propId);
+            if (!prop) return;
+
+            activeImageIndex = (activeImageIndex + direction + prop.images.length) % prop.images.length;
+            const imgEl = document.getElementById('active-slideshow-img');
+            const badgeEl = document.getElementById('image-counter-badge');
+            if (imgEl) imgEl.src = prop.images[activeImageIndex];
+            if (badgeEl) badgeEl.textContent = `${activeImageIndex + 1} / ${prop.images.length} photos`;
+        }
+
+        function switchPropertyTab(tabName) {
+            const overviewContent = document.getElementById('prop-content-overview');
+            const tour3dContent = document.getElementById('prop-content-tour3d');
+            const overviewBtn = document.getElementById('prop-tab-overview');
+            const tour3dBtn = document.getElementById('prop-tab-tour3d');
+
+            if (tabName === 'overview') {
+                overviewContent.classList.remove('hidden');
+                tour3dContent.classList.add('hidden');
+                overviewBtn.className = 'py-3 px-5 text-xs font-bold border-b-2 border-[#112519] text-[#112519] transition';
+                tour3dBtn.className = 'py-3 px-5 text-xs font-bold border-b-2 border-transparent text-[#657166] hover:text-[#112519] transition';
+            } else {
+                overviewContent.classList.add('hidden');
+                tour3dContent.classList.remove('hidden');
+                tour3dBtn.className = 'py-3 px-5 text-xs font-bold border-b-2 border-[#112519] text-[#112519] transition';
+                overviewBtn.className = 'py-3 px-5 text-xs font-bold border-b-2 border-transparent text-[#657166] hover:text-[#112519] transition';
+            }
+        }
+
+        function handle3DModelUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                showToast(`Successfully uploaded 3D model: ${file.name}. Virtual tour ready!`);
+            }
+        }
+
+        function closePropertyModal() {
+            document.getElementById('property-modal').classList.add('hidden');
+        }
+
+        function joinWaitingList(propId) {
+            showToast('Successfully joined Durham property waiting list! Other compatible students can now view your profile.');
+            closePropertyModal();
+        }
+
+        // --- SHORTLIST LOGIC ---
+        function toggleSaveProperty(propId) {
+            if (savedPropertyIds.includes(propId)) {
+                savedPropertyIds = savedPropertyIds.filter(id => id !== propId);
+                showToast('Removed property from shortlist.');
+            } else {
+                savedPropertyIds.push(propId);
+                showToast('Added property to shortlist!');
+            }
+            renderHomes();
+            renderShortlist();
+            document.getElementById('saved-homes-count-display').innerHTML = `${savedPropertyIds.length} <span class="text-sm font-normal text-[#657166]">properties</span>`;
+        }
+
+        function renderShortlist() {
+            const grid = document.getElementById('shortlist-grid');
+            if (!grid) return;
+
+            const saved = dummyProperties.filter(p => savedPropertyIds.includes(p.id));
+
+            if (saved.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-xs text-[#657166]">No saved Durham properties in your shortlist yet.</div>`;
+                return;
+            }
+
+            grid.innerHTML = saved.map(prop => `
+                <div class="bg-white rounded-3xl border border-[#e3f1e5] overflow-hidden shadow-xs p-5 flex gap-4">
+                    <img src="${prop.images[0]}" class="w-28 h-28 rounded-2xl object-cover">
+                    <div class="flex flex-col justify-between flex-grow">
+                        <div>
+                            <span class="text-[10px] font-bold text-[#1f422c] uppercase">${prop.matchPct} Match</span>
+                            <h3 class="font-bold text-[#112519] text-sm">${prop.title}</h3>
+                            <p class="text-[11px] text-[#657166]">${prop.location}</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-[#e3f1e5]">
+                            <span class="text-xs font-bold text-[#112519]">£${prop.price}/wk</span>
+                            <button onclick="openPropertyModal('${prop.id}')" class="text-xs font-bold text-[#1f422c] hover:underline">View details &rarr;</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- SECURE CHAT LOGIC ---
+        function requestConnection(userId, userName) {
+            const existing = chatsData.find(c => c.withUserId === userId);
+            if (!existing) {
+                chatsData.push({
+                    id: 'chat-' + userId,
+                    withUserId: userId,
+                    status: 'connected',
+                    messages: [
+                        { sender: userId, text: `Connection accepted! Let's chat about Durham private housing.`, time: 'Just now' }
+                    ]
+                });
+            }
+            showToast(`Secure connection established with ${userName}!`);
+            switchTab('messages');
+            renderChatContacts();
+            renderActiveChat();
+        }
+
+        function renderChatContacts() {
+            const list = document.getElementById('chat-contacts-list');
+            if (!list) return;
+
+            list.innerHTML = chatsData.map(chat => {
+                const rm = dummyRoommates.find(r => r.id === chat.withUserId);
+                if (!rm) return '';
+                const lastMsg = chat.messages[chat.messages.length - 1] || {};
+                const isActive = chat.id === activeChatId;
+
+                return `
+                    <div onclick="selectChat('${chat.id}')" class="p-3.5 cursor-pointer transition hover:bg-[#e3f1e5]/40 flex items-center gap-3 ${isActive ? 'bg-[#e3f1e5]/60 border-l-4 border-[#112519]' : ''}">
+                        <img src="${rm.avatar}" onclick="event.stopPropagation(); openUserProfileModal('${rm.id}')" title="View profile" class="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition">
+                        <div class="flex-grow min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-bold text-xs text-[#112519] truncate">${rm.name}</h4>
+                                <span class="text-[9px] text-[#657166]">${lastMsg.time || ''}</span>
+                            </div>
+                            <p class="text-[11px] text-[#657166] truncate mt-0.5">${lastMsg.text || ''}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectChat(chatId) {
+            activeChatId = chatId;
+            renderChatContacts();
+            renderActiveChat();
+        }
+
+        function renderActiveChat() {
+            const chat = chatsData.find(c => c.id === activeChatId);
+            const header = document.getElementById('active-chat-header');
+            const messagesEl = document.getElementById('active-chat-messages');
+            if (!chat || !header || !messagesEl) return;
+
+            const rm = dummyRoommates.find(r => r.id === chat.withUserId);
+
+            header.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <img src="${rm.avatar}" onclick="openUserProfileModal('${rm.id}')" title="View profile" class="w-9 h-9 rounded-full object-cover cursor-pointer hover:opacity-80 transition">
+                    <div>
+                        <h4 class="font-bold text-xs text-[#112519]">${rm.name}</h4>
+                        <span class="text-[10px] text-[#1f422c] font-bold">Secure Student Chat &bull; MBTI ${rm.mbti}</span>
+                    </div>
+                </div>
+            `;
+
+            messagesEl.innerHTML = chat.messages.map(m => {
+                const isMe = m.sender === currentUser.id;
+                return `
+                    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                        <div class="max-w-[75%] rounded-2xl px-4 py-2.5 text-xs shadow-xs ${isMe ? 'bg-[#112519] text-[#e3f1e5] rounded-br-none' : 'bg-white border border-[#e3f1e5] text-[#112519] rounded-bl-none'}">
+                            ${m.text}
+                        </div>
+                        <span class="text-[9px] text-[#657166] mt-1 px-1">${m.time}</span>
+                    </div>
+                `;
+            }).join('');
+
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function sendChatMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input-field');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chat = chatsData.find(c => c.id === activeChatId);
+            if (chat) {
+                chat.messages.push({ sender: currentUser.id, text: text, time: 'Just now' });
+                input.value = '';
+                renderActiveChat();
+                renderChatContacts();
+            }
+        }
+
+        // --- USER PROFILE VIEW MODAL (CLICKABLE AVATARS) ---
+        function openUserProfileModal(userId) {
+            const user = dummyRoommates.find(r => r.id === userId);
+            if (!user) return;
+
+            const body = document.getElementById('user-profile-modal-body');
+            const prefRow = (label, value) => `
+                <div>
+                    <span class="block text-[10px] font-bold text-[#657166] uppercase tracking-wider">${label}</span>
+                    <span class="block text-xs font-semibold text-[#112519]">${value}</span>
+                </div>
+            `;
+
+            body.innerHTML = `
+                <div class="p-6 md:p-8 space-y-6">
+                    <div class="flex items-center gap-5">
+                        <img src="${user.avatar}" class="w-24 h-24 rounded-full object-cover shadow-md border-4 border-[#e3f1e5]">
+                        <div class="space-y-1.5">
+                            <h2 class="text-2xl font-bold text-[#112519]">${user.name}</h2>
+                            <p class="text-xs text-[#657166]">${user.dept} &bull; ${user.uni}</p>
+                            <div class="flex flex-wrap gap-2 pt-1">
+                                <span class="px-2.5 py-1 bg-[#e3f1e5] text-[#112519] text-xs font-bold rounded-xl">${user.mbti} &bull; ${user.matchPct} Match</span>
+                                <span class="px-2.5 py-1 bg-[#faeedc] text-[#112519] text-xs font-bold rounded-xl">${user.year}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-[#657166] italic bg-[#f9f8f4] border border-[#e3f1e5] p-4 rounded-2xl leading-relaxed">"${user.bio}"</p>
+
+                    <div>
+                        <h3 class="font-bold text-sm text-[#112519] mb-2">Hobbies &amp; interests</h3>
+                        <div class="flex flex-wrap gap-1.5">
+                            ${user.hobbies.map(h => `<span class="px-2.5 py-1 bg-[#e3f1e5]/60 border border-[#e3f1e5] text-[#112519] text-[10px] font-medium rounded-lg">${h}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-sm text-[#112519] mb-3">Living preferences</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-[#f9f8f4] border border-[#e3f1e5] p-5 rounded-3xl">
+                            ${prefRow('Budget', user.budget)}
+                            ${prefRow('Max distance to campus', user.distance)}
+                            ${prefRow('Preferred area', user.city)}
+                            ${prefRow('Cleanliness', user.cleanliness)}
+                            ${prefRow('Sleep schedule', user.sleep)}
+                            ${prefRow('Social level', user.social)}
+                            ${prefRow('Smoking', user.smoking)}
+                            ${prefRow('Pets', user.pets)}
+                            ${prefRow('Flatmate preference', user.genderPref)}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-sm text-[#112519] mb-2">Looking for in a roommate</h3>
+                        <p class="text-xs text-[#657166] leading-relaxed">${user.roommateDesc}</p>
+                    </div>
+
+                    <button onclick="closeUserProfileModal(); requestConnection('${user.id}', '${user.name}')" class="w-full py-3 bg-[#112519] hover:bg-[#1f422c] text-[#e3f1e5] font-bold rounded-2xl text-xs transition shadow-md">
+                        <i class="fa-solid fa-user-plus mr-1"></i> Connect with ${user.name.split(' ')[0]}
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('user-profile-modal').classList.remove('hidden');
+        }
+
+        function closeUserProfileModal() {
+            document.getElementById('user-profile-modal').classList.add('hidden');
+        }
+
+        // --- PROFILE EDITING & AI AVATAR ---
+        function calculateProfileCompleteness() {
+            let score = 50;
+            if (currentUser.name) score += 10;
+            if (currentUser.bio) score += 10;
+            if (currentUser.mbti) score += 15;
+            if (currentUser.hobbies.length > 0) score += 15;
+            if (score > 100) score = 100;
+
+            document.getElementById('match-completeness-pct').textContent = score + '%';
+            document.getElementById('hero-progress-bar').style.width = score + '%';
+        }
+
+        function updateUserProfileUI() {
+            document.getElementById('sidebar-user-avatar').src = currentUser.avatar;
+            document.getElementById('sidebar-user-name').textContent = currentUser.name;
+            document.getElementById('sidebar-user-uni').textContent = currentUser.uni + ' \u2022 Student';
+            document.getElementById('header-mini-avatar').src = currentUser.avatar;
+            document.getElementById('header-mini-name').textContent = currentUser.name.split(' ')[0];
+            document.getElementById('profile-edit-avatar').src = currentUser.avatar;
+
+            document.getElementById('input-name').value = currentUser.name;
+            document.getElementById('input-uni').value = currentUser.uni;
+            document.getElementById('input-year').value = currentUser.year;
+            document.getElementById('input-bio').value = currentUser.bio;
+
+            document.getElementById('pref-budget').value = currentUser.budget;
+            document.getElementById('pref-distance').value = currentUser.distance;
+            document.getElementById('pref-city').value = currentUser.city;
+            document.getElementById('pref-cleanliness').value = currentUser.cleanliness;
+            document.getElementById('pref-sleep').value = currentUser.sleep;
+            document.getElementById('pref-social').value = currentUser.social;
+            document.getElementById('pref-smoking').value = currentUser.smoking;
+            document.getElementById('pref-pets').value = currentUser.pets;
+            document.getElementById('pref-gender').value = currentUser.genderPref;
+            document.getElementById('pref-roommate-desc').value = currentUser.roommateDesc;
+
+            calculateProfileCompleteness();
+        }
+
+        function saveProfileChanges(e) {
+            e.preventDefault();
+            currentUser.name = document.getElementById('input-name').value;
+            currentUser.uni = document.getElementById('input-uni').value;
+            currentUser.year = document.getElementById('input-year').value;
+            currentUser.bio = document.getElementById('input-bio').value;
+
+            currentUser.budget = document.getElementById('pref-budget').value;
+            currentUser.distance = document.getElementById('pref-distance').value;
+            currentUser.city = document.getElementById('pref-city').value;
+            currentUser.cleanliness = document.getElementById('pref-cleanliness').value;
+            currentUser.sleep = document.getElementById('pref-sleep').value;
+            currentUser.social = document.getElementById('pref-social').value;
+            currentUser.smoking = document.getElementById('pref-smoking').value;
+            currentUser.pets = document.getElementById('pref-pets').value;
+            currentUser.genderPref = document.getElementById('pref-gender').value;
+            currentUser.roommateDesc = document.getElementById('pref-roommate-desc').value;
+
+            updateUserProfileUI();
+            showToast('Profile & Vibe Check updated successfully!');
+            switchTab('discover');
+        }
+
+        function handleAvatarUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    currentUser.avatar = evt.target.result;
+                    updateUserProfileUI();
+                    showToast('Profile photo updated!');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function generateAIAvatar() {
+            const aiAvatars = [
+                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80'
+            ];
+            const randomAvatar = aiAvatars[Math.floor(Math.random() * aiAvatars.length)];
+            currentUser.avatar = randomAvatar;
+            updateUserProfileUI();
+            showToast('New AI avatar generated successfully!');
+        }
+
+        // --- AUTH & DEMO LOGINS ---
+        function openAuthModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
+        function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
+        function loginWithProvider(provider) {
+            showToast(`Successfully authenticated via ${provider}!`);
+            closeAuthModal();
+        }
+        function quickDemoLogin(userId) {
+            if (userId === 'sophie') {
+                currentUser = {
+                    id: 'sophie',
+                    name: 'Sophie Williams',
+                    uni: 'Durham University',
+                    year: 'Year 2',
+                    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+                    mbti: 'ENFP',
+                    hobbies: ['Rowing', 'Travel', 'Debate'],
+                    bio: 'Law student at Hatfield College looking for friendly college mates in Durham.',
+                    budget: '£190/wk',
+                    distance: '5 min',
+                    city: 'Durham (Elvet / Viaduct)',
+                    cleanliness: 'Moderate',
+                    sleep: 'Early riser',
+                    social: 'Sociable',
+                    smoking: 'No',
+                    pets: 'Dog friendly',
+                    genderPref: 'Any',
+                    roommateDesc: 'Friendly and active housemates.'
+                };
+            } else {
+                currentUser = {
+                    id: 'jamie',
+                    name: 'Jamie Smith',
+                    uni: 'Durham University',
+                    year: 'Year 2',
+                    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+                    mbti: 'INTJ',
+                    hobbies: ['Reading', 'Cooking', 'Coffee', 'Rowing'],
+                    bio: 'Durham student at Hatfield College looking for clean flatmates near Elvet.',
+                    budget: '£180/wk',
+                    distance: '10 min',
+                    city: 'Durham (Elvet / Viaduct)',
+                    cleanliness: 'Tidy',
+                    sleep: 'Flexible',
+                    social: 'Sociable',
+                    smoking: 'No',
+                    pets: 'No pets',
+                    genderPref: 'Any',
+                    roommateDesc: 'Someone clean, respectful of library hours, and up for college formals.'
+                };
+            }
+            updateUserProfileUI();
+            renderMbtiCards();
+            renderHobbiesTags();
+            closeAuthModal();
+            showToast(`Switched account to ${currentUser.name}`);
+        }
+
+        // --- FILTER MODAL ---
+        function openFilterModal() { document.getElementById('filter-modal').classList.remove('hidden'); }
+        function closeFilterModal() { document.getElementById('filter-modal').classList.add('hidden'); }
+        function handleGlobalSearch(e) { const query = e.target.value.toLowerCase(); }
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-[#112519] text-[#e3f1e5] px-5 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center gap-3 animate-fade-in pointer-events-auto border border-[#1f422c]';
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-[#e3f1e5] text-sm"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
