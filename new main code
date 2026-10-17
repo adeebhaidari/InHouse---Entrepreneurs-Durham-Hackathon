@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InHouse - Find your next home</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        inhouse: {
+                            bg: '#FDFCF8',
+                            sidebar: '#F9F8F4',
+                            dark: '#17362D',
+                            sage: '#E8F3E1',
+                            sageHover: '#d1e6c3',
+                            peach: '#F9EBE0',
+                            peachHover: '#F4DFCD',
+                            muted: '#6B7A75',
+                            border: '#EAE6DB'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDFCF8; color: #17362D; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+        .slide-fade { transition: opacity 0.8s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="h-full flex overflow-hidden selection:bg-inhouse-dark selection:text-inhouse-sage">
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Layout Container -->
+    <div class="flex w-full h-full">
+        
+        <!-- Left Sidebar -->
+        <aside class="w-64 bg-inhouse-sidebar border-r border-inhouse-border flex flex-col justify-between p-6 shrink-0 z-40 hidden md:flex">
+            <div class="space-y-8">
+                <!-- Logo -->
+                <div class="flex items-center gap-2">
+                    <img src="image_30d142.png" alt="InHouse" class="h-8 object-contain">
+                </div>
+
+                <!-- Navigation -->
+                <div>
+                    <span class="block text-[10px] font-bold tracking-widest text-inhouse-muted uppercase mb-4">Workspace</span>
+                    <nav class="space-y-1.5">
+                        <button onclick="switchTab('discover')" id="nav-discover" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-semibold transition bg-inhouse-sage text-inhouse-dark">
+                            <i class="fa-regular fa-compass w-5 text-center text-lg"></i> Discover
+                        </button>
+                        <button onclick="switchTab('shortlist')" id="nav-shortlist" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-semibold transition text-inhouse-muted hover:bg-inhouse-border/50 hover:text-inhouse-dark">
+                            <i class="fa-regular fa-bookmark w-5 text-center text-lg"></i> My shortlist
+                        </button>
+                        <button onclick="switchTab('messages')" id="nav-messages" class="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-sm font-semibold transition text-inhouse-muted hover:bg-inhouse-border/50 hover:text-inhouse-dark">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-regular fa-comment w-5 text-center text-lg"></i> Messages
+                            </div>
+                            <span id="sidebar-msg-badge" class="bg-inhouse-sage text-inhouse-dark text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        </button>
+                        <button onclick="switchTab('profile')" id="nav-profile" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-semibold transition text-inhouse-muted hover:bg-inhouse-border/50 hover:text-inhouse-dark">
+                            <i class="fa-regular fa-user w-5 text-center text-lg"></i> My profile
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Bottom Sidebar Area -->
+            <div class="space-y-5">
+                <!-- Promo Box -->
+                <div class="bg-inhouse-dark text-inhouse-sage p-5 rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-3 left-4 text-inhouse-sage">
+                        <i class="fa-solid fa-sparkles text-sm"></i>
+                    </div>
+                    <h4 class="font-bold text-sm mt-4 mb-2">Make your profile shine</h4>
+                    <p class="text-[11px] text-inhouse-sage/80 leading-relaxed mb-4">Complete your profile to get better housemate matches.</p>
+                    <button onclick="switchTab('profile')" class="w-full py-2 bg-inhouse-sage hover:bg-white text-inhouse-dark font-bold text-xs rounded-xl transition">
+                        Complete profile &rarr;
+                    </button>
+                </div>
+
+                <!-- User Profile Snippet -->
+                <div class="pt-4 border-t border-inhouse-border flex items-center gap-3 cursor-pointer group" onclick="switchTab('profile')">
+                    <div class="w-9 h-9 rounded-full bg-yellow-200 text-yellow-800 font-bold flex items-center justify-center text-sm shrink-0 border border-yellow-300" id="sidebar-avatar-initials">JS</div>
+                    <div class="min-w-0">
+                        <span id="sidebar-user-name" class="block text-xs font-bold text-inhouse-dark truncate group-hover:text-black">Jamie Smith</span>
+                        <span id="sidebar-user-uni" class="block text-[10px] text-inhouse-muted truncate">Durham University • Student</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-inhouse-muted ml-auto opacity-0 group-hover:opacity-100 transition"></i>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main View Area -->
+        <main class="flex-grow flex flex-col min-w-0 bg-inhouse-bg overflow-y-auto custom-scrollbar relative">
+            
+            <!-- Top Header (No Search Bar) -->
+            <header class="p-6 md:px-10 md:pt-10 md:pb-6 flex items-center justify-between sticky top-0 z-30 bg-inhouse-bg/90 backdrop-blur-sm">
+                <div>
+                    <!-- Mobile Logo (hidden on desktop) -->
+                    <img src="image_30d142.png" alt="InHouse" class="h-6 object-contain md:hidden mb-2">
+                </div>
+                <div class="flex items-center gap-4 ml-auto">
+                    <button class="text-inhouse-muted hover:text-inhouse-dark transition" onclick="showToast('No new notifications')">
+                        <i class="fa-regular fa-bell text-lg"></i>
+                    </button>
+                    <div class="w-8 h-8 rounded-full bg-yellow-200 text-yellow-800 font-bold flex items-center justify-center text-xs border border-yellow-300 cursor-pointer" onclick="switchTab('profile')" id="header-avatar-initials">JS</div>
+                </div>
+            </header>
+
+            <!-- TAB 1: DISCOVER -->
+            <section id="tab-discover" class="px-6 md:px-10 pb-12 space-y-8 animate-fade-in max-w-7xl mx-auto w-full">
+                
+                <!-- Main Title -->
+                <div>
+                    <p class="text-[10px] font-bold tracking-widest text-inhouse-muted uppercase mb-2" id="current-date">TUESDAY, 17 JUNE 2025</p>
+                    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-inhouse-dark mb-2">Find your next <span class="text-emerald-700 italic font-serif">home.</span></h1>
+                    <p class="text-sm text-inhouse-muted">Places to live, people you'll love living with.</p>
+                </div>
+
+                <!-- Hero Sliding Banner -->
+                <div class="relative rounded-3xl overflow-hidden h-48 md:h-64 shadow-sm w-full group">
+                    <div id="hero-slider" class="absolute inset-0 w-full h-full bg-slate-900">
+                        <!-- Populated by JS -->
+                    </div>
+                    <!-- Overlay Text -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent flex flex-col justify-center p-8 z-10 pointer-events-none">
+                        <h2 id="hero-title" class="text-2xl md:text-3xl font-extrabold text-white mb-2 drop-shadow-md">A fresh start. A familiar feeling.</h2>
+                        <p id="hero-desc" class="text-sm text-slate-200 drop-shadow max-w-md">New to university? Find people you can feel at home with.</p>
+                    </div>
+                    <!-- Controls -->
+                    <div class="absolute bottom-4 right-4 z-20 flex gap-2" id="hero-dots">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Filters Bar -->
+                <div class="flex flex-col md:flex-row gap-3">
+                    <div class="flex-grow flex items-center bg-white border border-inhouse-border rounded-full px-5 py-3 hover:border-inhouse-muted transition shadow-sm">
+                        <i class="fa-solid fa-location-dot text-inhouse-muted mr-3"></i>
+                        <div class="flex flex-col flex-grow">
+                            <span class="text-[9px] font-bold uppercase text-inhouse-muted tracking-wider">Looking Near</span>
+                            <select id="location-select" onchange="handleLocationChange(event)" class="text-sm font-semibold text-inhouse-dark bg-transparent border-none outline-none cursor-pointer w-full appearance-none">
+                                <option value="Durham University">Durham University</option>
+                                <option value="University of Manchester">University of Manchester</option>
+                                <option value="University of Leeds">University of Leeds</option>
+                                <option value="UCL">UCL</option>
+                            </select>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-inhouse-muted ml-2"></i>
+                    </div>
+
+                    <div class="flex-grow md:max-w-xs flex items-center bg-white border border-inhouse-border rounded-full px-5 py-3 hover:border-inhouse-muted transition shadow-sm">
+                        <i class="fa-regular fa-calendar text-inhouse-muted mr-3"></i>
+                        <div class="flex flex-col flex-grow">
+                            <span class="text-[9px] font-bold uppercase text-inhouse-muted tracking-wider">Move In</span>
+                            <input type="month" id="move-in-date" value="2025-09" class="text-sm font-semibold text-inhouse-dark bg-transparent border-none outline-none cursor-pointer appearance-none">
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-inhouse-muted ml-2"></i>
+                    </div>
+
+                    <button class="bg-inhouse-sage hover:bg-inhouse-sageHover text-inhouse-dark font-semibold text-sm px-6 py-3 rounded-full flex items-center justify-center gap-2 transition border border-inhouse-border shadow-sm">
+                        <i class="fa-solid fa-sliders"></i> Filters
+                    </button>
+                </div>
+
+                <!-- Dashboard Stat Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- Card 1 -->
+                    <div class="bg-inhouse-sage border border-inhouse-border p-6 rounded-3xl cursor-pointer hover:shadow-md transition" onclick="switchTab('profile')">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-[10px] font-bold text-emerald-800 tracking-wider uppercase">Your Match Profile</span>
+                            <i class="fa-solid fa-sparkles text-emerald-700"></i>
+                        </div>
+                        <div class="text-4xl font-extrabold text-inhouse-dark mb-1">87%</div>
+                        <p class="text-xs text-inhouse-dark/70 mb-4">profile completeness</p>
+                        <div class="w-full bg-emerald-700/20 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-emerald-700 h-full rounded-full" style="width: 87%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="bg-white border border-inhouse-border p-6 rounded-3xl cursor-pointer hover:shadow-md transition">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-[10px] font-bold text-inhouse-muted tracking-wider uppercase">People Like You</span>
+                            <i class="fa-solid fa-user-group text-inhouse-muted"></i>
+                        </div>
+                        <div class="text-4xl font-extrabold text-inhouse-dark mb-1">12 <span class="text-sm font-normal text-inhouse-muted">nearby</span></div>
+                        <p class="text-xs text-inhouse-dark/70">looking for a similar home</p>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="bg-inhouse-peach border border-inhouse-peachHover p-6 rounded-3xl cursor-pointer hover:shadow-md transition" onclick="switchTab('shortlist')">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-[10px] font-bold text-orange-800 tracking-wider uppercase">Saved Homes</span>
+                            <i class="fa-regular fa-heart text-orange-800"></i>
+                        </div>
+                        <div class="text-4xl font-extrabold text-inhouse-dark mb-1" id="dash-saved-count">0 <span class="text-sm font-normal text-inhouse-muted">properties</span></div>
+                        <p class="text-xs text-inhouse-dark/70" id="dash-saved-sub">0 have new activity</p>
+                    </div>
+                </div>
+
+                <!-- Homes For You -->
+                <div class="space-y-4 pt-4">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <h2 class="text-xl font-bold text-inhouse-dark">Homes for you</h2>
+                            <p class="text-xs text-inhouse-muted">Based on your preferences and profile</p>
+                        </div>
+                        <a href="#" class="text-xs font-semibold text-inhouse-dark hover:underline">View all &rarr;</a>
+                    </div>
+                    <div id="homes-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Potential Housemates (Restored layout) -->
+                <div class="space-y-4 pt-8">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <h2 class="text-xl font-bold text-inhouse-dark">Your potential housemates</h2>
+                            <p class="text-xs text-inhouse-muted">People viewing the same homes as you</p>
+                        </div>
+                        <a href="#" class="text-xs font-semibold text-inhouse-dark hover:underline">See everyone &rarr;</a>
+                    </div>
+                    <div id="housemates-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- TAB 2: SHORTLIST -->
+            <section id="tab-shortlist" class="px-6 md:px-10 pb-12 space-y-6 hidden animate-fade-in max-w-7xl mx-auto w-full">
+                <h1 class="text-3xl font-extrabold text-inhouse-dark">My Shortlist</h1>
+                <div id="shortlist-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </section>
+
+            <!-- TAB 3: MESSAGES -->
+            <section id="tab-messages" class="px-6 md:px-10 pb-12 hidden animate-fade-in max-w-6xl mx-auto w-full h-[calc(100vh-100px)]">
+                <div class="bg-white rounded-3xl border border-inhouse-border shadow-sm flex flex-col md:flex-row h-full overflow-hidden">
+                    <!-- Contacts -->
+                    <div class="w-full md:w-1/3 border-r border-inhouse-border flex flex-col bg-inhouse-sidebar">
+                        <div class="p-4 border-b border-inhouse-border bg-white">
+                            <h3 class="font-bold text-inhouse-dark text-sm">Messages</h3>
+                        </div>
+                        <div id="chat-contacts-list" class="flex-grow overflow-y-auto custom-scrollbar divide-y divide-inhouse-border/50">
+                            <!-- Populated -->
+                        </div>
+                    </div>
+                    <!-- Active Chat -->
+                    <div class="w-full md:w-2/3 flex flex-col bg-white">
+                        <div id="active-chat-header" class="p-4 border-b border-inhouse-border flex items-center justify-between hidden"></div>
+                        <div id="active-chat-messages" class="flex-grow overflow-y-auto p-6 space-y-4 bg-inhouse-bg flex flex-col">
+                            <div class="m-auto text-center text-xs text-inhouse-muted">Select a chat to begin messaging.</div>
+                        </div>
+                        <div id="active-chat-input" class="p-4 border-t border-inhouse-border bg-white hidden">
+                            <form onsubmit="sendMessage(event)" class="flex gap-2">
+                                <input type="text" id="chat-input-field" placeholder="Type a message..." class="flex-grow bg-inhouse-sidebar border border-inhouse-border rounded-full px-5 py-2.5 text-sm focus:outline-none focus:border-inhouse-muted">
+                                <button type="submit" class="bg-inhouse-dark text-inhouse-sage px-5 py-2.5 rounded-full font-bold text-sm hover:bg-black transition">Send</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: PROFILE -->
+            <section id="tab-profile" class="px-6 md:px-10 pb-20 hidden animate-fade-in max-w-3xl mx-auto w-full">
+                <h1 class="text-3xl font-extrabold text-inhouse-dark mb-6">Set up your profile</h1>
+                
+                <div class="bg-white rounded-3xl p-8 border border-inhouse-border shadow-sm space-y-8">
+                    <p class="text-xs font-semibold text-inhouse-muted">This is what other students see when deciding whether to share a place with you.</p>
+                    
+                    <form onsubmit="saveProfile(event)" class="space-y-8">
+                        <!-- Basics -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-inhouse-dark mb-2">Full name</label>
+                                <input type="text" id="prof-name" class="w-full bg-inhouse-sidebar border border-inhouse-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-inhouse-muted" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-inhouse-dark mb-2">University</label>
+                                <select id="prof-uni" class="w-full bg-inhouse-sidebar border border-inhouse-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-inhouse-muted">
+                                    <option value="Durham University">Durham University</option>
+                                    <option value="University of Manchester">University of Manchester</option>
+                                    <option value="University of Leeds">University of Leeds</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- MBTI -->
+                        <div class="pt-6 border-t border-inhouse-border">
+                            <h3 class="font-bold text-sm text-inhouse-dark mb-1">MBTI vibe check</h3>
+                            <p class="text-xs text-inhouse-muted mb-4">Pick your type — we use it to score compatibility with other students.</p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="mbti-grid">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-4">
+                            <button type="submit" class="bg-inhouse-sage hover:bg-inhouse-sageHover text-inhouse-dark font-bold px-8 py-3 rounded-full transition shadow-sm text-sm">Save Profile</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- Property Modal (z-50) -->
+    <div id="property-modal" class="fixed inset-0 bg-inhouse-dark/80 backdrop-blur-sm z-[50] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar relative animate-fade-in border border-inhouse-border">
+            <button onclick="closeModal('property-modal')" class="absolute top-4 right-4 z-20 w-10 h-10 bg-white/90 hover:bg-white text-inhouse-dark rounded-full flex items-center justify-center shadow transition font-bold text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="property-modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Student Profile Modal (z-60) -->
+    <div id="student-modal" class="fixed inset-0 bg-inhouse-dark/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-xl max-w-sm w-full p-6 relative animate-fade-in border border-inhouse-border">
+            <button onclick="closeModal('student-modal')" class="absolute top-4 right-4 text-inhouse-muted hover:text-inhouse-dark transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div id="student-modal-content" class="text-center pt-4"></div>
+        </div>
+    </div>
+
+    <!-- Payment Modal (z-70) -->
+    <div id="payment-modal" class="fixed inset-0 bg-inhouse-dark/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-xl max-w-sm w-full p-6 relative animate-fade-in border border-inhouse-border">
+            <button onclick="closeModal('payment-modal')" class="absolute top-4 right-4 text-inhouse-muted hover:text-inhouse-dark transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h3 class="font-bold text-lg text-inhouse-dark mb-2">Secure Reservation</h3>
+            <p class="text-xs text-inhouse-muted mb-6">Process a holding deposit to reserve this property.</p>
+            <div class="space-y-3">
+                <button onclick="processPayment('Google Pay')" class="w-full flex justify-between items-center p-4 bg-inhouse-sidebar border border-inhouse-border rounded-2xl hover:border-black transition">
+                    <span class="font-bold text-sm text-inhouse-dark">Google Pay</span>
+                    <i class="fa-brands fa-google-pay text-3xl text-slate-700"></i>
+                </button>
+                <button onclick="processPayment('Visa')" class="w-full flex justify-between items-center p-4 bg-inhouse-sidebar border border-inhouse-border rounded-2xl hover:border-blue-600 transition">
+                    <span class="font-bold text-sm text-inhouse-dark">Visa</span>
+                    <i class="fa-brands fa-cc-visa text-2xl text-blue-700"></i>
+                </button>
+                <button onclick="processPayment('Mastercard')" class="w-full flex justify-between items-center p-4 bg-inhouse-sidebar border border-inhouse-border rounded-2xl hover:border-red-500 transition">
+                    <span class="font-bold text-sm text-inhouse-dark">Mastercard</span>
+                    <i class="fa-brands fa-cc-mastercard text-2xl text-red-500"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Data Models
+        const mbtiList = [
+            { code: 'INTJ', desc: 'Strategic, independent' }, { code: 'INTP', desc: 'Curious, analytical' },
+            { code: 'ENTJ', desc: 'Decisive, leader' }, { code: 'ENTP', desc: 'Inventive, debater' },
+            { code: 'INFJ', desc: 'Insightful, idealistic' }, { code: 'INFP', desc: 'Authentic, empathetic' },
+            { code: 'ENFJ', desc: 'Warm, organised' }, { code: 'ENFP', desc: 'Enthusiastic, free-spirited' },
+            { code: 'ISTJ', desc: 'Reliable, structured' }, { code: 'ISFJ', desc: 'Caring, conscientious' },
+            { code: 'ESTJ', desc: 'Practical, direct' }, { code: 'ESFJ', desc: 'Friendly, supportive' },
+            { code: 'ISTP', desc: 'Handy, adaptable' }, { code: 'ISFP', desc: 'Gentle, artistic' },
+            { code: 'ESTP', desc: 'Bold, energetic' }, { code: 'ESFP', desc: 'Playful, sociable' }
+        ];
+
+        let currentUser = { id: 'jamie', name: 'Jamie Smith', uni: 'Durham University', mbti: 'INTJ' };
+        
+        // Exact slider images & text specified by user
+        const sliderData = [
+            { img: 'image_266784.png', title: 'A fresh start. A familiar feeling.', desc: 'New to university? Find people you can feel at home with.' },
+            { img: 'image_2667c3.jpg', title: 'Match your mates', desc: 'Find compatible roommates. Quick and personalised.' },
+            { img: 'image_266859.jpg', title: 'Less searching. More settling in.', desc: 'Bring your housemate and housing search together with InHouse.' }
+        ];
+
+        let properties = [
+            {
+                id: 'p1', title: 'The Foundry', loc: 'Earlham Street, Durham', price: 895, type: 'Studio',
+                beds: 1, baths: 1, match: '94%', interested: 3,
+                images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80'],
+                desc: 'Modern student studio right in the city center. Fully furnished with high speed wifi and utility bills included.'
+            },
+            {
+                id: 'p2', title: 'Parkside House', loc: 'Mill Road, Durham', price: 760, type: 'Shared',
+                beds: 4, baths: 2, match: '91%', interested: 5,
+                images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80', 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&q=80'],
+                desc: 'Spacious 4-bedroom house with a large communal kitchen and living area. Perfect for a group of friends.'
+            },
+            {
+                id: 'p3', title: 'The Rookery', loc: 'Castle Hill, Durham', price: 1025, type: 'Apartment',
+                beds: 2, baths: 2, match: '87%', interested: 2,
+                images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80'],
+                desc: 'Premium 2-bedroom apartment with en-suite bathrooms and private gym access in the building.'
+            }
+        ];
+
+        const housemates = [
+            { id: 'hm1', name: 'Sophie Williams', course: 'Architecture - 2nd year', mbti: 'ENFP', match: '96%', bio: 'Early riser - Loves cooking', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80', color: 'bg-orange-100 text-orange-600', init: 'SW' },
+            { id: 'hm2', name: 'Ethan Zhang', course: 'Computer Science - 3rd year', mbti: 'INTJ', match: '92%', bio: 'Quiet home - Big foodie', avatar: '', color: 'bg-blue-100 text-blue-600', init: 'EZ' },
+            { id: 'hm3', name: 'Maya Patel', course: 'Psychology - 1st year', mbti: 'ISTP', match: '89%', bio: 'Social - Keeps things tidy', avatar: '', color: 'bg-emerald-100 text-emerald-600', init: 'MP' }
+        ];
+
+        let savedProps = [];
+        let chats = [];
+        let activeChat = null;
+        let activeImgIdx = 0;
+        let slideIdx = 0;
+
+        // Initialization
+        window.onload = () => {
+            initSlider();
+            initDate();
+            renderHomes();
+            renderHousemates();
+            renderMbti();
+            updateProfileUI();
+        };
+
+        function initDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-GB', options).toUpperCase();
+        }
+
+        // --- Slider Logic ---
+        function initSlider() {
+            const container = document.getElementById('hero-slider');
+            const dots = document.getElementById('hero-dots');
+            
+            container.innerHTML = sliderData.map((s, i) => `
+                <div id="slide-${i}" class="absolute inset-0 bg-cover bg-center slide-fade ${i===0 ? 'opacity-100' : 'opacity-0'}" style="background-image: url('${s.img}');"></div>
+            `).join('');
+
+            dots.innerHTML = sliderData.map((_, i) => `
+                <button onclick="setSlide(${i})" id="dot-${i}" class="w-2 h-2 rounded-full transition ${i===0 ? 'bg-white' : 'bg-white/40'}"></button>
+            `).join('');
+
+            setInterval(() => setSlide((slideIdx + 1) % sliderData.length), 5000);
+        }
+
+        function setSlide(idx) {
+            document.getElementById(`slide-${slideIdx}`).classList.replace('opacity-100', 'opacity-0');
+            document.getElementById(`dot-${slideIdx}`).classList.replace('bg-white', 'bg-white/40');
+            
+            slideIdx = idx;
+            
+            document.getElementById(`slide-${slideIdx}`).classList.replace('opacity-0', 'opacity-100');
+            document.getElementById(`dot-${slideIdx}`).classList.replace('bg-white/40', 'bg-white');
+            
+            document.getElementById('hero-title').textContent = sliderData[idx].title;
+            document.getElementById('hero-desc').textContent = sliderData[idx].desc;
+        }
+
+        // --- Filtering ---
+        function handleLocationChange(e) {
+            const loc = e.target.value;
+            // Randomize array to simulate filtering
+            properties = properties.sort(() => Math.random() - 0.5).map(p => ({
+                ...p, loc: `${p.loc.split(',')[0]}, ${loc.split(' ')[0]}`
+            }));
+            renderHomes();
+            showToast(`Showing homes near ${loc}`);
+        }
+
+        // --- Profile Logic ---
+        function renderMbti() {
+            const grid = document.getElementById('mbti-grid');
+            grid.innerHTML = mbtiList.map(m => `
+                <div onclick="currentUser.mbti='${m.code}'; renderMbti();" class="p-3 border rounded-xl cursor-pointer transition flex flex-col justify-center ${currentUser.mbti === m.code ? 'bg-inhouse-dark text-inhouse-sage border-inhouse-dark' : 'bg-white text-inhouse-dark border-inhouse-border hover:bg-inhouse-sidebar'}">
+                    <span class="font-bold text-sm">${m.code}</span>
+                    <span class="text-[10px] opacity-80 mt-0.5 leading-tight">${m.desc}</span>
+                </div>
+            `).join('');
+        }
+
+        function saveProfile(e) {
+            e.preventDefault();
+            currentUser.name = document.getElementById('prof-name').value;
+            currentUser.uni = document.getElementById('prof-uni').value;
+            updateProfileUI();
+            showToast("Profile & MBTI saved successfully!");
+            switchTab('discover');
+        }
+
+        function updateProfileUI() {
+            document.getElementById('prof-name').value = currentUser.name;
+            document.getElementById('prof-uni').value = currentUser.uni;
+            
+            const initials = currentUser.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.getElementById('header-avatar-initials').textContent = initials;
+            document.getElementById('sidebar-avatar-initials').textContent = initials;
+            
+            document.getElementById('sidebar-user-name').textContent = currentUser.name;
+            document.getElementById('sidebar-user-uni').textContent = `${currentUser.uni} • ${currentUser.mbti}`;
+        }
+
+        // --- Render Homes ---
+        function renderHomes() {
+            const grid = document.getElementById('homes-grid');
+            grid.innerHTML = properties.map(p => {
+                const isSaved = savedProps.includes(p.id);
+                return `
+                <div class="bg-white rounded-3xl border border-inhouse-border overflow-hidden cursor-pointer hover:shadow-lg transition group" onclick="openProperty('${p.id}')">
+                    <div class="relative h-48 overflow-hidden">
+                        <img src="${p.images[0]}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute top-3 left-3 bg-inhouse-sage text-inhouse-dark text-[10px] font-bold px-2.5 py-1 rounded-lg">
+                            ${p.match} match
+                        </div>
+                        <button onclick="event.stopPropagation(); toggleSave('${p.id}')" class="absolute top-3 right-3 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition shadow-sm">
+                            <i class="${isSaved ? 'fa-solid text-red-500' : 'fa-regular text-slate-400'} fa-heart text-sm"></i>
+                        </button>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-inhouse-dark text-base">${p.title}</h3>
+                            <div class="font-extrabold text-inhouse-dark">£${p.price}<span class="text-[10px] font-normal text-inhouse-muted">/wk</span></div>
+                        </div>
+                        <p class="text-[11px] text-inhouse-muted mb-4"><i class="fa-solid fa-location-dot mr-1"></i> ${p.loc}</p>
+                        
+                        <!-- Explicit bed/bath row -->
+                        <div class="flex items-center gap-4 text-xs font-semibold text-inhouse-dark pt-3 border-t border-inhouse-border">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-inhouse-muted"></i> ${p.beds} Bedrooms</span>
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-bath text-inhouse-muted"></i> ${p.baths} Bathrooms</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-2 text-xs text-inhouse-muted font-medium">
+                            <span>${p.type}</span>
+                            <span><i class="fa-regular fa-user mr-1"></i> ${p.interested} interested</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // --- Render Horizontal Potential Housemates ---
+        function renderHousemates() {
+            const grid = document.getElementById('housemates-grid');
+            grid.innerHTML = housemates.map(h => `
+                <div class="bg-white border border-inhouse-border rounded-3xl p-4 flex items-center gap-4 cursor-pointer hover:border-inhouse-muted transition shadow-sm" onclick="openStudent('${h.id}')">
+                    ${h.avatar ? `<img src="${h.avatar}" class="w-12 h-12 rounded-full object-cover">` : `<div class="w-12 h-12 rounded-full ${h.color} flex items-center justify-center font-bold text-sm">${h.init}</div>`}
+                    <div class="flex-grow min-w-0">
+                        <div class="flex justify-between items-center mb-0.5">
+                            <h4 class="font-bold text-sm text-inhouse-dark truncate">${h.name}</h4>
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">${h.match}</span>
+                        </div>
+                        <p class="text-[10px] text-inhouse-muted truncate">${h.course}</p>
+                        <p class="text-[10px] text-inhouse-muted truncate mt-0.5">${h.bio}</p>
+                    </div>
+                    <i class="fa-solid fa-plus text-inhouse-muted bg-inhouse-sidebar w-6 h-6 rounded-full flex items-center justify-center text-[10px]"></i>
+                </div>
+            `).join('');
+        }
+
+        // --- Property Modal ---
+        function openProperty(id) {
+            const p = properties.find(x => x.id === id);
+            activeImgIdx = 0;
+            const content = document.getElementById('property-modal-content');
+            
+            content.innerHTML = `
+                <!-- Slideshow -->
+                <div class="relative h-64 md:h-80 bg-slate-900">
+                    <img id="modal-img" src="${p.images[0]}" class="w-full h-full object-cover">
+                    ${p.images.length > 1 ? `
+                        <button onclick="changeImg(-1, '${p.id}')" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 text-white rounded-full flex items-center justify-center hover:bg-black/60 transition"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="changeImg(1, '${p.id}')" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 text-white rounded-full flex items-center justify-center hover:bg-black/60 transition"><i class="fa-solid fa-chevron-right"></i></button>
+                    ` : ''}
+                    <div class="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full shadow" id="modal-img-counter">1 / ${p.images.length}</div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-6 md:p-8 space-y-8">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="inline-block bg-inhouse-sage text-inhouse-dark text-[10px] font-bold px-3 py-1 rounded-full mb-2">${p.match} Match</span>
+                            <h2 class="text-2xl font-bold text-inhouse-dark mb-1">${p.title}</h2>
+                            <p class="text-xs text-inhouse-muted"><i class="fa-solid fa-location-dot mr-1"></i> ${p.loc}</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-extrabold text-inhouse-dark">£${p.price}</div>
+                            <div class="text-[10px] text-inhouse-muted">per week</div>
+                        </div>
+                    </div>
+
+                    <!-- Beds/Baths & Reserve -->
+                    <div class="flex justify-between items-center border-y border-inhouse-border py-4">
+                        <div class="flex gap-6">
+                            <span class="font-bold text-sm text-inhouse-dark"><i class="fa-solid fa-bed text-inhouse-muted mr-2"></i> ${p.beds} Bedrooms</span>
+                            <span class="font-bold text-sm text-inhouse-dark"><i class="fa-solid fa-bath text-inhouse-muted mr-2"></i> ${p.baths} Bathrooms</span>
+                        </div>
+                        <button onclick="openModal('payment-modal')" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm px-6 py-2.5 rounded-full shadow transition flex items-center gap-2">
+                            <i class="fa-regular fa-credit-card"></i> Reserve / Pay
+                        </button>
+                    </div>
+
+                    <!-- Tabs Area for Overview / 3D -->
+                    <div>
+                        <div class="flex gap-4 border-b border-inhouse-border mb-5">
+                            <button onclick="switchPropTab('overview')" id="btn-prop-overview" class="pb-2 text-sm font-bold text-inhouse-dark border-b-2 border-inhouse-dark">Overview & Amenities</button>
+                            <button onclick="switchPropTab('3d')" id="btn-prop-3d" class="pb-2 text-sm font-bold text-inhouse-muted border-b-2 border-transparent hover:text-inhouse-dark">3D Virtual Tour</button>
+                        </div>
+
+                        <!-- Overview Section -->
+                        <div id="prop-sec-overview" class="space-y-6 block">
+                            <div>
+                                <p class="text-sm text-inhouse-muted leading-relaxed">${p.desc}</p>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm text-inhouse-dark mb-3">Included Amenities</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="bg-inhouse-sidebar border border-inhouse-border px-3 py-1.5 rounded-lg text-xs font-semibold text-inhouse-dark"><i class="fa-solid fa-wifi mr-1 text-inhouse-muted"></i> High-speed WiFi</span>
+                                    <span class="bg-inhouse-sidebar border border-inhouse-border px-3 py-1.5 rounded-lg text-xs font-semibold text-inhouse-dark"><i class="fa-solid fa-bolt mr-1 text-inhouse-muted"></i> Bills Included</span>
+                                    <span class="bg-inhouse-sidebar border border-inhouse-border px-3 py-1.5 rounded-lg text-xs font-semibold text-inhouse-dark"><i class="fa-solid fa-shield mr-1 text-inhouse-muted"></i> 24/7 Security</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Students Interested -->
+                            <div>
+                                <h3 class="font-bold text-sm text-inhouse-dark mb-3">Students Viewing This Property</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    ${housemates.slice(0, p.interested).map(h => `
+                                        <div class="flex items-center gap-3 p-3 border border-inhouse-border rounded-2xl cursor-pointer hover:bg-inhouse-sidebar transition" onclick="openStudent('${h.id}')">
+                                            ${h.avatar ? `<img src="${h.avatar}" class="w-10 h-10 rounded-full object-cover">` : `<div class="w-10 h-10 rounded-full ${h.color} flex items-center justify-center font-bold text-xs">${h.init}</div>`}
+                                            <div>
+                                                <div class="font-bold text-xs text-inhouse-dark">${h.name}</div>
+                                                <div class="text-[10px] text-emerald-700 font-semibold">${h.match} Match • MBTI: ${h.mbti}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3D Model Section -->
+                        <div id="prop-sec-3d" class="hidden">
+                            <div class="bg-inhouse-sidebar border-2 border-dashed border-inhouse-border rounded-3xl h-64 flex flex-col items-center justify-center text-center p-6">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-inhouse-dark shadow-sm mb-3 text-xl">
+                                    <i class="fa-solid fa-vr-cardboard"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-inhouse-dark mb-1">Interactive 3D Tour</h4>
+                                <p class="text-xs text-inhouse-muted max-w-xs mb-4">Providers can upload 3D models here to allow students to explore the space virtually.</p>
+                                <label class="bg-white border border-inhouse-border hover:bg-inhouse-sage px-5 py-2 rounded-full text-xs font-bold text-inhouse-dark cursor-pointer transition shadow-sm">
+                                    <i class="fa-solid fa-upload mr-1"></i> Upload .GLTF / .OBJ
+                                    <input type="file" class="hidden" onchange="showToast('3D Model uploaded successfully!')">
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+            openModal('property-modal');
+        }
+
+        function changeImg(dir, pId) {
+            const p = properties.find(x => x.id === pId);
+            activeImgIdx = (activeImgIdx + dir + p.images.length) % p.images.length;
+            document.getElementById('modal-img').src = p.images[activeImgIdx];
+            document.getElementById('modal-img-counter').textContent = `${activeImgIdx + 1} / ${p.images.length}`;
+        }
+
+        function switchPropTab(tab) {
+            if(tab === 'overview') {
+                document.getElementById('prop-sec-overview').classList.replace('hidden', 'block');
+                document.getElementById('prop-sec-3d').classList.replace('block', 'hidden');
+                document.getElementById('btn-prop-overview').className = "pb-2 text-sm font-bold text-inhouse-dark border-b-2 border-inhouse-dark";
+                document.getElementById('btn-prop-3d').className = "pb-2 text-sm font-bold text-inhouse-muted border-b-2 border-transparent hover:text-inhouse-dark";
+            } else {
+                document.getElementById('prop-sec-3d').classList.replace('hidden', 'block');
+                document.getElementById('prop-sec-overview').classList.replace('block', 'hidden');
+                document.getElementById('btn-prop-3d').className = "pb-2 text-sm font-bold text-inhouse-dark border-b-2 border-inhouse-dark";
+                document.getElementById('btn-prop-overview').className = "pb-2 text-sm font-bold text-inhouse-muted border-b-2 border-transparent hover:text-inhouse-dark";
+            }
+        }
+
+        // --- Student Modal ---
+        function openStudent(id) {
+            const h = housemates.find(x => x.id === id);
+            const content = document.getElementById('student-modal-content');
+            content.innerHTML = `
+                <div class="flex justify-center mb-4">
+                    ${h.avatar ? `<img src="${h.avatar}" class="w-20 h-20 rounded-full object-cover border-4 border-inhouse-sage">` : `<div class="w-20 h-20 rounded-full ${h.color} flex items-center justify-center font-bold text-2xl border-4 border-white shadow">${h.init}</div>`}
+                </div>
+                <h3 class="font-bold text-xl text-inhouse-dark mb-1">${h.name}</h3>
+                <p class="text-xs text-inhouse-muted mb-3">${h.course}</p>
+                <div class="inline-block bg-inhouse-sage text-inhouse-dark font-bold text-xs px-3 py-1 rounded-full mb-4">
+                    ${h.match} Match • MBTI: ${h.mbti}
+                </div>
+                <div class="bg-inhouse-sidebar p-4 rounded-2xl border border-inhouse-border mb-6">
+                    <p class="text-xs text-inhouse-dark italic">"${h.bio}"</p>
+                </div>
+                <button onclick="startChat('${h.id}'); closeModal('student-modal'); closeModal('property-modal');" class="w-full bg-inhouse-dark text-white font-bold text-sm py-3 rounded-2xl hover:bg-black transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-comment"></i> Send Message
+                </button>
+            `;
+            openModal('student-modal');
+        }
+
+        // --- Chat System ---
+        function startChat(userId) {
+            if(!chats.find(c => c.uid === userId)) chats.push({ uid: userId, msgs: [] });
+            activeChat = userId;
+            switchTab('messages');
+            renderChats();
+        }
+
+        function renderChats() {
+            const list = document.getElementById('chat-contacts-list');
+            if(chats.length === 0) {
+                list.innerHTML = `<div class="p-6 text-center text-xs text-inhouse-muted">No messages yet.</div>`;
+                return;
+            }
+            
+            list.innerHTML = chats.map(c => {
+                const h = housemates.find(x => x.id === c.uid);
+                const last = c.msgs[c.msgs.length - 1]?.text || 'Say hi!';
+                const isActive = c.uid === activeChat;
+                return `
+                    <div class="p-4 cursor-pointer flex items-center gap-3 transition ${isActive ? 'bg-inhouse-sage/50 border-l-4 border-inhouse-dark' : 'hover:bg-white'}" onclick="activeChat='${c.uid}'; renderChats();">
+                        ${h.avatar ? `<img src="${h.avatar}" class="w-10 h-10 rounded-full object-cover">` : `<div class="w-10 h-10 rounded-full ${h.color} flex items-center justify-center font-bold text-xs">${h.init}</div>`}
+                        <div class="min-w-0">
+                            <h4 class="font-bold text-sm text-inhouse-dark truncate">${h.name}</h4>
+                            <p class="text-[11px] text-inhouse-muted truncate">${last}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            renderActiveChat();
+        }
+
+        function renderActiveChat() {
+            if(!activeChat) return;
+            const c = chats.find(x => x.uid === activeChat);
+            const h = housemates.find(x => x.id === activeChat);
+            
+            document.getElementById('active-chat-header').classList.remove('hidden');
+            document.getElementById('active-chat-input').classList.remove('hidden');
+            
+            document.getElementById('active-chat-header').innerHTML = `
+                <div class="flex items-center gap-3">
+                    ${h.avatar ? `<img src="${h.avatar}" class="w-10 h-10 rounded-full object-cover">` : `<div class="w-10 h-10 rounded-full ${h.color} flex items-center justify-center font-bold text-xs">${h.init}</div>`}
+                    <div>
+                        <h4 class="font-bold text-sm text-inhouse-dark">${h.name}</h4>
+                        <p class="text-[10px] text-emerald-700 font-bold">${h.match} Match</p>
+                    </div>
+                </div>
+            `;
+
+            const msgsArea = document.getElementById('active-chat-messages');
+            if(c.msgs.length === 0) {
+                msgsArea.innerHTML = `<div class="m-auto text-center text-xs text-inhouse-muted bg-white p-4 rounded-2xl border border-inhouse-border">Start chatting with ${h.name.split(' ')[0]}</div>`;
+            } else {
+                msgsArea.innerHTML = c.msgs.map(m => {
+                    const isMe = m.sender === 'jamie';
+                    return `
+                        <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                            <div class="px-4 py-2.5 rounded-2xl text-sm max-w-[80%] ${isMe ? 'bg-inhouse-dark text-inhouse-sage rounded-br-none' : 'bg-white border border-inhouse-border text-inhouse-dark rounded-bl-none'}">
+                                ${m.text}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            msgsArea.scrollTop = msgsArea.scrollHeight;
+        }
+
+        function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input-field');
+            const text = input.value.trim();
+            if(!text || !activeChat) return;
+
+            const c = chats.find(x => x.uid === activeChat);
+            c.msgs.push({ sender: 'jamie', text });
+            input.value = '';
+            renderChats();
+
+            // Exact requested auto-reply
+            setTimeout(() => {
+                c.msgs.push({ sender: activeChat, text: "Hi, yeah thats the plan :)" });
+                renderChats();
+            }, 1000);
+        }
+
+        // --- Modals & Tabs Utilities ---
+        function switchTab(id) {
+            ['discover', 'shortlist', 'messages', 'profile'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const nav = document.getElementById(`nav-${t}`);
+                if(nav) {
+                    nav.classList.remove('bg-inhouse-sage', 'text-inhouse-dark');
+                    nav.classList.add('text-inhouse-muted');
+                }
+            });
+            document.getElementById(`tab-${id}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${id}`);
+            if(activeNav) {
+                activeNav.classList.add('bg-inhouse-sage', 'text-inhouse-dark');
+                activeNav.classList.remove('text-inhouse-muted');
+            }
+            window.scrollTo(0,0);
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function processPayment(method) {
+            showToast(`Processing via ${method}...`);
+            setTimeout(() => {
+                showToast(`Success! Deposit paid via ${method}.`);
+                closeModal('payment-modal');
+            }, 1500);
+        }
+
+        function toggleSave(id) {
+            if(savedProps.includes(id)) {
+                savedProps = savedProps.filter(x => x !== id);
+                showToast('Removed from shortlist');
+            } else {
+                savedProps.push(id);
+                showToast('Added to shortlist');
+            }
+            renderHomes();
+            updateShortlist();
+        }
+
+        function updateShortlist() {
+            document.getElementById('dash-saved-count').innerHTML = `${savedProps.length} <span class="text-sm font-normal text-inhouse-muted">properties</span>`;
+            
+            const grid = document.getElementById('shortlist-grid');
+            const saved = properties.filter(p => savedProps.includes(p.id));
+            if(saved.length === 0) {
+                grid.innerHTML = `<div class="col-span-3 text-center text-inhouse-muted py-12 text-sm">No properties saved yet.</div>`;
+                return;
+            }
+            
+            grid.innerHTML = saved.map(p => `
+                <div class="bg-white rounded-3xl border border-inhouse-border overflow-hidden cursor-pointer flex items-center p-4 gap-4" onclick="openProperty('${p.id}')">
+                    <img src="${p.images[0]}" class="w-20 h-20 rounded-2xl object-cover">
+                    <div class="flex-grow">
+                        <h3 class="font-bold text-sm text-inhouse-dark truncate">${p.title}</h3>
+                        <p class="text-[10px] text-inhouse-muted">${p.loc}</p>
+                        <div class="font-bold text-xs text-inhouse-dark mt-2">£${p.price}/wk</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showToast(msg) {
+            const c = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = 'bg-inhouse-dark text-inhouse-sage px-5 py-3 rounded-full text-xs font-bold shadow-lg animate-fade-in flex items-center gap-2';
+            t.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${msg}`;
+            c.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 3000);
+        }
+    </script>
+</body>
+</html>
